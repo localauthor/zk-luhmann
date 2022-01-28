@@ -3,7 +3,11 @@
 ;; Copyright (C) 2022  Grant Rosson
 
 ;; Author: Grant Rosson <https://github.com/localauthor>
-;; Keywords: wp, files, text
+;; Created: January 25, 2022
+;; License: GPL-3.0-or-later
+;; Version: 0.1
+;; Homepage: https://github.com/localauthor/zk
+;; Package-Requires: ((emacs "24.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,18 +24,32 @@
 
 ;;; Commentary:
 
-;; 
+;; Adds support for files with Luhmann-style IDs in zk and zk-index.
+
+;; Luhmann-style IDs are alphanumeric sequences between curly braces.
+;; They look like this: {1,1,b,3 }
+;; Note the space after the final character. This is necessary for proper sorting.
+
+;; The ID is part of the file-name, positioned between the zk-id and the
+;; title.
+
+;; Because all files with Luhmann-IDs have normal zk-ids, they are normal zk-files.
+;; But not all normal zk-files are Luhmann files.
+
+;; This naming and ID scheme offers a different organizing scheme within a
+;; zk. It is both distinct from and fully integrated with zk.
 
 ;;; Code:
 
 (require 'zk)
+(require 'zk-index)
 
 ;;; Luhmann IDs
 
 (defun zk-luhmann ()
   "Find note with Luhmann-style ID."
   (interactive)
-  (let* ((list (zk--luhmann-files))
+  (let* ((list (zk-luhmann-files))
          (file
           (completing-read
            "Select File: "
@@ -39,12 +57,12 @@
              (if (eq action 'metadata)
                  `(metadata
                    (category . zk-file)
-                   (group-function . zk--luhmann-group-function)
-                   (display-sort-function . zk--luhmann-sort))
+                   (group-function . zk-luhmann-group-function)
+                   (display-sort-function . zk-luhmann-sort))
                (complete-with-action action list string predicate))))))
     (find-file file)))
 
-(defun zk--luhmann-group-function (cand transform)
+(defun zk-luhmann-group-function (cand transform)
   "TRANSFORM each CAND for 'zk-luhmann'."
   (if transform
       (progn
@@ -57,7 +75,7 @@
         (match-string 2 cand))
     "Luhmann Notes"))
 
-(defun zk--luhmann-sort (list) 
+(defun zk-luhmann-sort (list)
   "Sort LIST of 'zk-luhmann' candidates or files."
   (sort list
         (lambda (a b)
@@ -80,17 +98,17 @@
         (when (re-search-backward "{" nil t)
           (list (match-beginning 0)
                 pt
-                (zk--luhmann-format-candidates)
+                (zk-luhmann-format-candidates)
                 :exclusive 'no))))))
 
-(defun zk--luhmann-files ()
+(defun zk-luhmann-files ()
   "List notes with Luhmann-style IDs."
   (zk--directory-files t "{"))
 
-(defun zk--luhmann-format-candidates (&optional files)
-  "Format notes with Luhmann-style IDs."
+(defun zk-luhmann-format-candidates (&optional files)
+  "Format completions candidates for FILES with Luhmann-IDs."
   (let* ((files (if files files
-                  (zk--luhmann-files)))
+                  (zk-luhmann-files)))
          (output))
     (dolist (file files)
       (progn
@@ -110,51 +128,25 @@
 
 (add-hook 'completion-at-point-functions #'zk-luhmann-completion-at-point 'append)
 
+;;; Index Luhmann
 
+(define-key zk-index-map (kbd "L") #'zk-luhmann-index-sort)
+(define-key zk-index-map (kbd "l") #'zk-luhmann-index)
 
-;; (defun zk-luhmann-index ()
-;;   "Precursor to zk-index."
-;;   (interactive)
-;;   (let ((luhmann "*Luhmann-Index*")
-;;         (line))
-;;     (if (get-buffer luhmann)
-;;         (with-current-buffer luhmann
-;;           (setq line (line-number-at-pos))
-;;           (read-only-mode -1)
-;;           (erase-buffer)
-;;           (zk-luhmann-insert-index)
-;;           (goto-char (point-min))
-;;           (forward-line (1- line))
-;;           (read-only-mode))
-;;       (progn
-;;         (generate-new-buffer luhmann)
-;;         (with-current-buffer luhmann
-;;           (zk-luhmann-insert-index)
-;;           (local-set-key (kbd "n") 'next-line)
-;;           (local-set-key (kbd "p") 'previous-line)
-;;           (local-set-key (kbd "f") 'consult-focus-lines)
-;;           (local-set-key (kbd "g") 'zk-luhmann-index)
-;;           (local-set-key (kbd "q") 'delete-window)
-;;           (read-only-mode 1)
-;;           (toggle-truncate-lines)
-;;           (goto-char (point-min)))))
-;;     (pop-to-buffer luhmann)))
+;;;###autoload
+(defun zk-luhmann-index ()
+  "Open index for Luhmann-style notes."
+  (interactive)
+  (zk-index (zk-luhmann-files) nil 'zk-luhmann-sort))
 
-;; (defun zk-luhmann-insert-index ()
-;;   (let ((files (zk--luhmann--function
-;;                 (zk--luhmann-candidates))))
-;;     (dolist (file files)
-;;       (string-match zk-id-regexp file)
-;;       (insert-text-button file
-;;                           'follow-link t
-;;                           'face 'default
-;;                           'action
-;;                           `(lambda (_)
-;;                              (progn
-;;                                (view-file-other-window
-;;                                 (zk--parse-id 'file-path
-;;                                               ,(match-string 0 file))))))
-;;       (newline))))
+(defun zk-luhmann-index-sort ()
+  "Sort index according to Luhmann-style IDs."
+  (interactive)
+  (if (eq zk-index-last-sort-function 'zk-luhmann-sort)
+      (zk-index-refresh (zk-index--current-file-list)
+                        zk-index-last-format-function
+                        #'zk-luhmann-sort)
+    (error "Not in Luhmann index - press \"l\" to switch")))
 
 
 (provide 'zk-luhmann)
