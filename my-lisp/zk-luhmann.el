@@ -80,13 +80,11 @@
   (sort list
         (lambda (a b)
           (let ((one
-                 (progn
-                   (string-match "{[^ ]*" a)
-                   (match-string 0 a)))
+                 (when (string-match "{\\([^ ]*\\)" a)
+                   (match-string 1 a)))
                 (two
-                 (progn
-                   (string-match "{[^ ]*" b)
-                   (match-string 0 b))))
+                 (when (string-match "{\\([^ ]*\\)" b)
+                   (match-string 1 b))))
             (string< one two)))))
 
 (defun zk-luhmann-completion-at-point ()
@@ -142,12 +140,9 @@
 (defun zk-luhmann-index-sort ()
   "Sort index according to Luhmann-style IDs."
   (interactive)
-  (if (eq zk-index-last-sort-function 'zk-luhmann-sort)
-      (zk-index-refresh (zk-index--current-file-list)
-                        zk-index-last-format-function
-                        #'zk-luhmann-sort)
-    (error "Not in Luhmann index - press \"l\" to switch")))
-
+  (zk-index-refresh (zk-index--current-file-list)
+                    zk-index-last-format-function
+                    #'zk-luhmann-sort))
 
 (provide 'zk-luhmann)
 ;;; zk-luhmann.el ends here
