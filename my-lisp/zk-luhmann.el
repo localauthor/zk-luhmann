@@ -33,11 +33,10 @@
 ;; The ID is part of the file-name, positioned between the zk-id and the
 ;; title.
 
-;; Because all files with Luhmann-IDs have normal zk-ids, they are normal zk-files.
-;; But not all normal zk-files are Luhmann files.
-
-;; This naming and ID scheme offers a different organizing scheme within a
-;; zk. It is both distinct from and fully integrated with zk.
+;; Because all files with Luhmann-IDs have normal zk-ids, they are normal
+;; zk-files. This naming and ID scheme therefore simply offers a different
+;; organizing scheme within a zk. It is both fully integrated with zk while
+;; being, nevertheless, completely distinct --- a system within a system.
 
 ;;; Code:
 
