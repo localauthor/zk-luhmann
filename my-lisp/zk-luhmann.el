@@ -175,9 +175,10 @@ See 'zk-luhmann-index-back' for complementary behavior."
           (line (buffer-substring
                  (line-beginning-position)
                  (line-end-position)))
-          (id (progn
-                (string-match regexp line)
-                (match-string-no-properties 0 line))))
+          (id (unless (string= "" line)
+                (progn
+                  (string-match regexp line)
+                  (match-string-no-properties 0 line)))))
     (when id
       (zk-index (zk--directory-files t id)
                 zk-index-last-format-function
