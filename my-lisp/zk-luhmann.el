@@ -104,34 +104,32 @@
 
 (defun zk-luhmann-format-candidates (&optional files)
   "Format completions candidates for FILES with Luhmann-IDs."
-  (let* ((files (if files files
-                  (zk-luhmann-files)))
-         (output))
-    (dolist (file files)
-      (progn
-        (string-match (concat "\\(?1:"
-                              zk-id-regexp
-                              "\\).\\(?2:.*?\\)\\."
-                              zk-file-extension
-                              ".*")
-                      file)
-        (let ((id (match-string 1 file))
-              (title (match-string 2 file)))
-          (when id
-            (push (format-spec "%t [[%i]]"
-                               `((?i . ,id)(?t . ,title)))
-                  output)))))
-    output))
+  (let ((files (if files files
+                 (zk-luhmann-files))))
+    (zk--format-candidates files "%t [[%i]]")))
 
 (add-hook 'completion-at-point-functions #'zk-luhmann-completion-at-point 'append)
+
 
 ;;; Luhmann Index
 
 (define-key zk-index-map (kbd "L") #'zk-luhmann-index-sort)
 (define-key zk-index-map (kbd "l") #'zk-luhmann-index)
-(define-key zk-index-map (kbd "F") #'zk-luhmann-index-forward)
-(define-key zk-index-map (kbd "B") #'zk-luhmann-index-back)
-(define-key zk-index-map (kbd "T") #'zk-luhmann-index-top)
+(define-key zk-index-map (kbd "C-f") #'zk-luhmann-index-forward)
+(define-key zk-index-map (kbd "C-b") #'zk-luhmann-index-back)
+(define-key zk-index-map (kbd "C-t") #'zk-luhmann-index-unfold)
+(define-key zk-index-map (kbd "t") #'zk-luhmann-index-top)
+(define-key zk-index-map (kbd "t") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "1") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "2") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "3") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "4") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "5") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "6") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "7") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "8") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "9") #'zk-luhmann-index-level)
+
 
 ;;;###autoload
 (defun zk-luhmann-index ()
@@ -142,57 +140,178 @@
 (defun zk-luhmann-index-sort ()
   "Sort index according to Luhmann-IDs."
   (interactive)
-  (zk-index-refresh (zk-index--current-file-list)
-                    zk-index-last-format-function
-                    #'zk-luhmann-sort))
+  (let ((file-list (zk-index--current-file-list)))
+    (when (listp file-list)
+      (zk-index-refresh file-list
+                        zk-index-last-format-function
+                        #'zk-luhmann-sort))))
 
 (defun zk-luhmann-index-top ()
   "Focus on top level Luhmann-ID notes."
   (interactive)
-  (zk-index (zk--directory-files t "{[^,] }")
-            zk-index-last-format-function
-            #'zk-luhmann-sort))
+  (let ((buffer-string (buffer-string)))
+    (zk-index (zk--directory-files t "{[^,] }")
+              zk-index-last-format-function
+              #'zk-luhmann-sort)
+    (when (string= buffer-string (buffer-string))
+      (zk-luhmann-index))))
 
 (defun zk-luhmann-index-forward ()
-  "Focus on notes that share a particular ID string.
-Calling this function on note \"{4,3 }\" will present a listing
-of all notes whose Luhmann-IDs begin with \"4,3\", such as
-\"{4,3,a }\" and \"{4,3,c,1,d }\". The effect is like descending
-\"into\" the archive.
-
-Keep in mind that this function will exclude notes that might be
-considered \"adjacent\", in the sense that \"{4,4 }\" is
-\"adjacent\" to \"{4,3 }\". This function is therefore a
-convenience feature, not a substitute for thinking.
-
-See 'zk-luhmann-index-back' for complementary behavior."
   (interactive)
-  (let* ((regexp
+  (let* ((buffer-string (buffer-string))
+         (regexp "{.[^ }]*")
+         (line (buffer-substring
+                (line-beginning-position)
+                (line-end-position)))
+         (id (unless (string= "" line)
+               (progn
+                 (string-match regexp line)
+                 (match-string-no-properties 0 line))))
+         (str
           (cond ((eq this-command 'zk-luhmann-index-forward)
-                 "{.[^ }]*")
-                ((eq this-command 'zk-luhmann-index-back)
-                 "{.[^, }]*")))
-          (line (buffer-substring
-                 (line-beginning-position)
-                 (line-end-position)))
-          (id (unless (string= "" line)
-                (progn
-                  (string-match regexp line)
-                  (match-string-no-properties 0 line)))))
+                 (concat id " \\|" id ",. [^ }]*"))
+                ((eq this-command 'zk-luhmann-index-unfold)
+                 (substring id 0 2)))))
     (when id
-      (zk-index (zk--directory-files t id)
-                zk-index-last-format-function
-                #'zk-luhmann-sort))))
+      (progn
+        (zk-index (zk--directory-files t str)
+                  zk-index-last-format-function
+                  #'zk-luhmann-sort)
+        (goto-char (point-min))
+        (re-search-forward id nil t)
+        (beginning-of-line)))
+    (cond ((and (eq this-command 'zk-luhmann-index-unfold)
+                (string= buffer-string (buffer-string)))
+           (zk-luhmann-index-top))
+          ((and (eq this-command 'zk-luhmann-index-forward)
+                (string= buffer-string (buffer-string)))
+           (progn
+             (setq this-command 'zk-luhmann-index-unfold)
+             (zk-luhmann-index-unfold))))))
 
 (defun zk-luhmann-index-back ()
-  "Focus on notes that share all but the last ID element.
-Calling this function on \"{4,3,a }\ will present a listing of
-all notes whose Luhmann IDs begin with \"4,3\". The effect is
-like returning back toward the \"top\" of the archive.
-
-See 'zk-luhmann-index-forward' for complementary behavior."
   (interactive)
-  (zk-luhmann-index-forward))
+  (zk-luhmann-index-sort)
+  (let* ((buffer-string (buffer-string))
+         (line (buffer-substring (goto-char (point-min))
+                                 (line-end-position)))
+         (id (progn
+               (string-match "{.[^ ]*" line)
+               (match-string 0 line)))
+         (sub-id (substring (match-string 0 line) 0 -2)))
+    (cond ((eq 2 (length id))
+            (zk-index (zk--directory-files t id)
+                      zk-index-last-format-function
+                      #'zk-luhmann-sort))
+          (t (zk-index (zk--directory-files t (concat sub-id " \\|" sub-id ",. [^ }]*"))
+                       zk-index-last-format-function
+                       #'zk-luhmann-sort)))
+    (when (string= buffer-string (buffer-string))
+      (zk-luhmann-index-top))))
+
+(defun zk-luhmann-index-unfold ()
+  (interactive)
+  (zk-luhmann-index-forward)
+  (recenter-top-bottom 0))
+
+(defun zk-luhmann-index-level ()
+  (interactive)
+  (let* ((char (if (integerp last-command-event)
+                   last-command-event
+                 (get last-command-event 'ascii-character)))
+         (reps (- (- (logand char ?\177) ?0) 1))
+         (base-rx "{[0-9]*")
+         (slug ",.")
+         (new-slug "")
+         (regexp
+          (progn
+            (when reps
+              (dotimes (_ reps)
+                (setq new-slug (concat new-slug slug))))
+            (concat base-rx new-slug " ")))
+         (current-files (zk--parse-id 'file-path (zk-index--current-id-list)))
+         (files (remq nil
+                      (mapcar
+                       (lambda (x)
+                         (when (member x (zk--directory-files t regexp))
+                           x))
+                       current-files))))
+    (zk-index files
+              zk-index-last-format-function
+              #'zk-luhmann-sort)))
+
+;; (defun zk-luhmann-index-level (arg)
+;;   (interactive)
+;;   (let* ((arg (if current-prefix-arg
+;;                    (- current-prefix-arg 1)
+;;                 arg))
+;;          (base-rx "{[0-9]*")
+;;          (slug ",.")
+;;          (new-slug "")
+;;          (regexp
+;;           (progn
+;;             (when arg
+;;               (dotimes (_ arg)
+;;                 (setq new-slug (concat new-slug slug))))
+;;             (concat base-rx new-slug " ")))
+;;          (current-files (zk--parse-id 'file-path (zk-index--current-id-list)))
+;;          (files (remq nil
+;;                       (mapcar
+;;                        (lambda (x)
+;;                          (when (member x (zk--directory-files t regexp))
+;;                            x))
+;;                        current-files))))
+;;     (zk-index files
+;;               zk-index-last-format-function
+;;               #'zk-luhmann-sort)))
+
+;; old forward and back
+;; (defun zk-luhmann-index-forward ()
+;;   "Focus on notes that share a particular ID string.
+;; Calling this function on note \"{4,3 }\" will present a listing
+;; of all notes whose Luhmann-IDs begin with \"4,3\", such as
+;; \"{4,3,a }\" and \"{4,3,c,1,d }\". The effect is like descending
+;; \"into\" the archive.
+
+;; Keep in mind that this function will exclude notes that might be
+;; considered \"adjacent\", in the sense that \"{4,4 }\" is
+;; \"adjacent\" to \"{4,3 }\". This function is therefore a
+;; convenience feature, not a substitute for thinking.
+
+;; See 'zk-luhmann-index-back' for complementary behavior."
+;;   (interactive)
+;;   (let* ((line-count (count-lines (point-min)
+;;                                   (point-max)))
+;;          (regexp
+;;           (cond ((eq this-command 'zk-luhmann-index-forward)
+;;                  "{.[^ }]*")
+;;                 ((eq this-command 'zk-luhmann-index-back)
+;;                  "{.[^, }]*")))
+;;           (line (buffer-substring
+;;                  (line-beginning-position)
+;;                  (line-end-position)))
+;;           (id (unless (string= "" line)
+;;                 (progn
+;;                   (string-match regexp line)
+;;                   (match-string-no-properties 0 line)))))
+;;     (when id
+;;       (zk-index (zk--directory-files t id)
+;;                 zk-index-last-format-function
+;;                 #'zk-luhmann-sort))
+;;     (when (and (eq this-command 'zk-luhmann-index-back)
+;;                (eq line-count (count-lines (point-min)
+;;                                            (point-max))))
+;;       (zk-luhmann-index-top))))
+
+;; (defun zk-luhmann-index-back ()
+;;   "Focus on notes that share all but the last ID element.
+;; Calling this function on \"{4,3,a }\ will present a listing of
+;; all notes whose Luhmann IDs begin with \"4,3\". The effect is
+;; like returning back toward the \"top\" of the archive.
+
+;; See 'zk-luhmann-index-forward' for complementary behavior."
+;;   (interactive)
+;;   (zk-luhmann-index-forward))
 
 (provide 'zk-luhmann)
 ;;; zk-luhmann.el ends here
