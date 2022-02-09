@@ -110,7 +110,6 @@
 
 (add-hook 'completion-at-point-functions #'zk-luhmann-completion-at-point 'append)
 
-
 ;;; Luhmann Index
 
 (define-key zk-index-map (kbd "L") #'zk-luhmann-index-sort)
@@ -179,7 +178,9 @@
                   #'zk-luhmann-sort)
         (goto-char (point-min))
         (re-search-forward id nil t)
-        (beginning-of-line)))
+        (beginning-of-line)
+        (when (eq this-command 'zk-luhmann-index-unfold)
+          (pulse-momentary-highlight-one-line nil 'highlight))))
     (cond ((and (eq this-command 'zk-luhmann-index-unfold)
                 (string= buffer-string (buffer-string)))
            (zk-luhmann-index-top))
@@ -203,16 +204,19 @@
             (zk-index (zk--directory-files t id)
                       zk-index-last-format-function
                       #'zk-luhmann-sort))
-          (t (zk-index (zk--directory-files t (concat sub-id " \\|" sub-id ",. [^ }]*"))
+          (t (progn (zk-index (zk--directory-files t (concat sub-id " \\|" sub-id ",. [^ }]*"))
                        zk-index-last-format-function
-                       #'zk-luhmann-sort)))
+                       #'zk-luhmann-sort)
+                    (re-search-forward id nil t)
+                    (beginning-of-line)
+                    (pulse-momentary-highlight-one-line nil 'highlight))))
     (when (string= buffer-string (buffer-string))
       (zk-luhmann-index-top))))
 
 (defun zk-luhmann-index-unfold ()
   (interactive)
-  (zk-luhmann-index-forward)
-  (recenter-top-bottom 0))
+  (zk-luhmann-index-forward))
+;;  (recenter-top-bottom))
 
 (defun zk-luhmann-index-level ()
   (interactive)
