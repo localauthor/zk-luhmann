@@ -118,7 +118,6 @@
 (define-key zk-index-map (kbd "C-b") #'zk-luhmann-index-back)
 (define-key zk-index-map (kbd "C-t") #'zk-luhmann-index-unfold)
 (define-key zk-index-map (kbd "t") #'zk-luhmann-index-top)
-(define-key zk-index-map (kbd "t") #'zk-luhmann-index-level)
 (define-key zk-index-map (kbd "1") #'zk-luhmann-index-level)
 (define-key zk-index-map (kbd "2") #'zk-luhmann-index-level)
 (define-key zk-index-map (kbd "3") #'zk-luhmann-index-level)
@@ -163,9 +162,9 @@
                 (line-beginning-position)
                 (line-end-position)))
          (id (unless (string= "" line)
-               (progn
-                 (string-match regexp line)
-                 (match-string-no-properties 0 line))))
+               (unless (string-match regexp line)
+                 (error "Not a Luhmann note"))
+               (match-string-no-properties 0 line)))
          (str
           (cond ((eq this-command 'zk-luhmann-index-forward)
                  (concat id " \\|" id ",. [^ }]*"))
@@ -192,7 +191,9 @@
 
 (defun zk-luhmann-index-back ()
   (interactive)
-  (zk-luhmann-index-sort)
+  (if (re-search-forward "{" (line-end-position) t)
+      (zk-luhmann-index-sort)
+    (error "Not a Luhmann note"))
   (let* ((buffer-string (buffer-string))
          (line (buffer-substring (goto-char (point-min))
                                  (line-end-position)))
@@ -204,7 +205,9 @@
             (zk-index (zk--directory-files t id)
                       zk-index-last-format-function
                       #'zk-luhmann-sort))
-          (t (progn (zk-index (zk--directory-files t (concat sub-id " \\|" sub-id ",. [^ }]*"))
+          (t (progn (zk-index (zk--directory-files
+                               t
+                               (concat sub-id " \\|" sub-id ",. [^ }]*"))
                        zk-index-last-format-function
                        #'zk-luhmann-sort)
                     (re-search-forward id nil t)
@@ -215,8 +218,8 @@
 
 (defun zk-luhmann-index-unfold ()
   (interactive)
-  (zk-luhmann-index-forward))
-;;  (recenter-top-bottom))
+  (zk-luhmann-index-forward)
+  (recenter-top-bottom))
 
 (defun zk-luhmann-index-level ()
   (interactive)
@@ -243,6 +246,18 @@
     (zk-index files
               zk-index-last-format-function
               #'zk-luhmann-sort)))
+
+(defun zk-luhmann-index-go-to-current ()
+  (interactive)
+  "Open ZK-Index buffer and to line of current note."
+  (let ((id (zk--current-id)))
+    (zk-index (zk--directory-files "{")
+              zk-index-last-format-function
+              #'zk-luhmann-sort)
+    (other-window 1)
+    (re-search-forward id nil t)
+    (beginning-of-line)
+    (pulse-momentary-highlight-one-line nil 'highlight)))
 
 (provide 'zk-luhmann)
 ;;; zk-luhmann.el ends here
