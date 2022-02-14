@@ -1,0 +1,23 @@
+
+* Introduction
+
+This package extends [[https://github.com/localauthor/][`zk` and `zk-index`]] to include support for working with
+files assigned Luhmann-style IDs.
+
+A demo of this package can be viewed here: https://youtu.be/O6iSV4pQQ5g
+
+Currently this package defines Luhmann-style IDs as alphanumeric sequences
+between curly braces. They look like this: {1,1,b,3 }
+
+Note the space after the final character. This is necessary for proper
+sorting.
+
+The ID is part of the file-name, positioned between the zk-id and the
+title.
+
+Because all files with Luhmann-IDs have normal zk-ids, they are normal
+zk-files. This naming and ID scheme therefore simply offers a different
+organizing scheme within a zk. It is both fully integrated with zk while
+being, nevertheless, completely distinct --- a system within a system.
+
+
