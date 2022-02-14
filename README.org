@@ -21,3 +21,58 @@ organizing scheme within a zk. It is both fully integrated with zk while
 being, nevertheless, completely distinct --- a system within a system.
 
 
+* Add keybindings to zk-index-map
+
+To add these functions to =zk-index-map=, include the following to your
+config file, substituting whatever keybindings you like:
+
+#+begin_src emacs-lisp
+(define-key zk-index-map (kbd "L") #'zk-luhmann-index-sort)
+(define-key zk-index-map (kbd "l") #'zk-luhmann-index)
+(define-key zk-index-map (kbd "C-f") #'zk-luhmann-index-forward)
+(define-key zk-index-map (kbd "C-b") #'zk-luhmann-index-back)
+(define-key zk-index-map (kbd "C-t") #'zk-luhmann-index-unfold)
+(define-key zk-index-map (kbd "t") #'zk-luhmann-index-top)
+(define-key zk-index-map (kbd "1") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "2") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "3") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "4") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "5") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "6") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "7") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "8") #'zk-luhmann-index-level)
+(define-key zk-index-map (kbd "9") #'zk-luhmann-index-level)
+#+end_src
+
+Or, with use-package:
+
+#+begin_src emacs-lisp
+(use-package zk-luhmann
+  :bind (:map zk-index-map
+              ("L" . zk-luhmann-index-sort)
+              ("l" . zk-luhmann-index)
+              ("C-f" . zk-luhmann-index-forward)
+              ("C-b" . zk-luhmann-index-back)
+              ("C-t" . zk-luhmann-index-unfold)
+              ("t" . zk-luhmann-index-top)
+              ("1" . zk-luhmann-index-level)
+              ("2" . zk-luhmann-index-level)
+              ("3" . zk-luhmann-index-level)
+              ("4" . zk-luhmann-index-level)
+              ("5" . zk-luhmann-index-level)
+              ("6" . zk-luhmann-index-level)
+              ("7" . zk-luhmann-index-level)
+              ("8" . zk-luhmann-index-level)
+              ("9" . zk-luhmann-index-level)))
+#+end_src
+
+
+* Completion-at-point
+
+To add completion at point for files with Luhmann-style IDs, evaluate the following:
+
+#+begin_src emacs-lisp
+(add-hook 'completion-at-point-functions
+          #'zk-luhmann-completion-at-point 'append)
+#+end_src
+

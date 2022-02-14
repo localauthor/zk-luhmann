@@ -7,7 +7,7 @@
 ;; License: GPL-3.0-or-later
 ;; Version: 0.2
 ;; Homepage: https://github.com/localauthor/zk
-;; Package-Requires: ((emacs "24.1"))
+;; Package-Requires: ((emacs "24.1")(zk "0.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -108,26 +108,7 @@
                  (zk-luhmann-files))))
     (zk--format-candidates files "%t [[%i]]")))
 
-(add-hook 'completion-at-point-functions #'zk-luhmann-completion-at-point 'append)
-
 ;;; Luhmann Index
-
-(define-key zk-index-map (kbd "L") #'zk-luhmann-index-sort)
-(define-key zk-index-map (kbd "l") #'zk-luhmann-index)
-(define-key zk-index-map (kbd "C-f") #'zk-luhmann-index-forward)
-(define-key zk-index-map (kbd "C-b") #'zk-luhmann-index-back)
-(define-key zk-index-map (kbd "C-t") #'zk-luhmann-index-unfold)
-(define-key zk-index-map (kbd "t") #'zk-luhmann-index-top)
-(define-key zk-index-map (kbd "1") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "2") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "3") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "4") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "5") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "6") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "7") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "8") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "9") #'zk-luhmann-index-level)
-
 
 ;;;###autoload
 (defun zk-luhmann-index ()
@@ -155,6 +136,7 @@
       (zk-luhmann-index))))
 
 (defun zk-luhmann-index-forward ()
+  "Focus on this note and its immediate sub-branches."
   (interactive)
   (let* ((buffer-string (buffer-string))
          (regexp "{.[^ }]*")
@@ -190,6 +172,7 @@
              (zk-luhmann-index-unfold))))))
 
 (defun zk-luhmann-index-back ()
+  "Expand focus from current sub-branch scope."
   (interactive)
   (if (re-search-forward "{" (line-end-position) t)
       (zk-luhmann-index-sort)
@@ -217,11 +200,13 @@
       (zk-luhmann-index-top))))
 
 (defun zk-luhmann-index-unfold ()
+  "Expand focus to all Luhmann notes, with point on current note."
   (interactive)
   (zk-luhmann-index-forward)
   (recenter-top-bottom))
 
 (defun zk-luhmann-index-level ()
+  "Set number of sub-branch levels to view."
   (interactive)
   (let* ((char (if (integerp last-command-event)
                    last-command-event
@@ -248,6 +233,7 @@
               #'zk-luhmann-sort)))
 
 (defun zk-luhmann-index-go-to-current ()
+  "Open index with current note at point."
   (interactive)
   "Open ZK-Index buffer and to line of current note."
   (let ((id (zk--current-id)))
