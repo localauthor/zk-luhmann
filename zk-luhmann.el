@@ -285,5 +285,153 @@
     (beginning-of-line)
     (pulse-momentary-highlight-one-line nil 'highlight)))
 
+(defun zk-luhmann--lmid-from-tid(id)
+  "Retrieve luhmann-id from a given zk ID."
+  (let ((title (zk--parse-id 'title id)))
+   (when (string-match zk-luhmann-id-regexp title)
+                   (match-string 1 title))))
+
+(defun zk-luhmann--inc-num-or-char (c)
+  "Increment a sequence of numbers or a character C."
+  (let ((nump  nil))
+      (if (string-match "[0123456789]+" c)
+        (number-to-string (1+ (string-to-number c)))
+        ;; handle chars
+            (let ((chr (1+ (string-to-char c))))
+              ;; Check if a(97)-z(122)->A(65)->Z(90)->Error
+              (if (> chr 122)
+                  (char-to-string 65) ;; start with capital A again
+                (if (and (> chr 90)(< chr 97))
+                    (error "Currently implementing only a-zA-Z - Consider branching")
+                   (char-to-string chr)))))))
+
+(defun zk-luhmann--lmid-next (lm-id)
+"Increments the Luhmann-ID LM-ID."
+ (let ((elems (split-string lm-id zk-luhmann-id-delimiter))
+       c1 c2)
+   (setq c1 (car (last elems)))
+   (setq c2 (zk-luhmann--inc-num-or-char c1))
+   (setcar (nthcdr (1- (length elems)) elems) c2)
+   (concat zk-luhmann-id-prefix
+           (string-join elems zk-luhmann-id-delimiter)
+           zk-luhmann-id-postfix)))
+
+
+(defun zk-luhmann--parse-file (target files)
+  "Return TARGET, either 'id, 'luhmann-id or 'title, from FILES.
+Takes a single file-path, as a string, or a list of file-paths.  A
+note's title is understood to be the portion of its filename following
+the zk ID in the format 'zk-id-regexp', the Luhmann ID in
+'zk-luhmann-id-regexp' and preceding the file extension."
+  (let* ((target (pcase target
+                   ('id '1)
+                   ('luhmann-id '2)
+                   ('title '3)))
+         (files (if (listp files)
+                    files
+                  (list files)))
+         (return
+          (mapcar
+           (lambda (file)
+       (if (string-match (concat "\\(?1:"
+                             zk-id-regexp
+                             "\\).\\(?2:"
+                             zk-luhmann-id-regexp
+                             "\\).\\(?3:.*?\\)\\."
+                             zk-file-extension
+                             ".*")
+                         file)
+           (match-string target file)
+         nil))
+           files)))
+    (if (eq 1 (length return))
+        (car return)
+      return)))
+
+(defun zk-luhmann--lmid-list (&optional str)
+  "Return a list of zk Luhmann IDs for notes in 'zk-directory'.
+Optional search for regexp STR in note title."
+  (let ((files (if str (zk--directory-files t str)
+                 (zk--directory-files t))))
+    (zk-luhmann--parse-file 'luhmann-id files)))
+
+
+(defun zk-luhmann--lmid-next-from-tid (tid)
+  "Construct the follow-up Luhmann ID following the note with time-derived ID TID."
+  (let ((next-lm-id (zk-luhmann--lmid-next
+     (zk-luhmann--lmid-from-tid tid))))
+  (if (not (zk-luhmann--lmid-list next-lm-id))
+      (progn next-lm-id)
+    nil)))
+
+(defun zk-luhmann-new-note-header (lm-id title new-id &optional orig-id)
+  "Include the Luhmann ID LM-ID in the header of the note.
+This is a wrapper to enricht the note header containing the TITLE, the
+NEW-ID and optionally the ORIG-ID of the parent note."
+  (funcall zk-new-note-header-function (concat (format "%s %s" lm-id title)) new-id orig-id)
+)
+
+(defun zk-luhmann-new-follow-note ()
+  "Create a new note, insert link at point of creation."
+  (interactive)
+  (let* ((pref-arg current-prefix-arg)
+         (new-id (zk--generate-id))
+         (orig-id (ignore-errors (zk--current-id)))
+         (text (when (use-region-p)
+                 (buffer-substring
+                  (region-beginning)
+                  (region-end))))
+         (title (if (use-region-p)
+                    (with-temp-buffer
+                      (insert text)
+                      (goto-char (point-min))
+                      (buffer-substring
+                       (point)
+                       (line-end-position)))
+                  (read-string "Note title (without Luhmann ID): ")))
+         (body (when (use-region-p)
+                 (with-temp-buffer
+                   (insert text)
+                   (goto-char (point-min))
+                   (forward-line 2)
+                   (buffer-substring
+                    (point)
+                    (point-max)))))
+         lm-id)
+    ;; Ask for parent note, if it was not called from within a ZK note
+    (unless orig-id
+      (setq orig-id (zk--id-list (read-string "Luhmann ID of parent note (n,c,..): "))))
+
+    ;; Returns nil, if there is already a follow-up note
+    (setq lm-id (zk-luhmann--lmid-next-from-tid orig-id))
+
+    (if (not lm-id)
+        ;; Warn if there is already a following note
+        (message "%s %s" (propertize "There is already a following note." 'face '(:foreground "red"))
+                 (propertize "Consider to branch!" 'face '(:foreground "yellow")))
+
+    (when (use-region-p)
+      (kill-region (region-beginning) (region-end)))
+
+    (when (or pref-arg
+              (eq zk-new-note-link-insert 't)
+              (and (eq zk-new-note-link-insert 'zk)
+                   (zk-file-p))
+              (and (eq zk-new-note-link-insert 'ask)
+                   (y-or-n-p "Insert link at point? ")))
+      (zk-insert-link new-id (concat lm-id title)))
+
+    (save-buffer)
+    (find-file (concat (format "%s/%s %s %s.%s"
+                               zk-directory
+                               new-id
+                               lm-id
+                               title
+                               zk-file-extension)))
+    (zk-luhmann-new-note-header lm-id title new-id orig-id)
+    (when body (insert body))
+    (when zk-enable-link-buttons (zk-make-link-buttons))
+    (save-buffer))))
+
 (provide 'zk-luhmann)
 ;;; zk-luhmann.el ends here
