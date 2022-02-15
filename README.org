@@ -1,27 +1,27 @@
 
 * Introduction
 
-This package extends [[https://github.com/localauthor/][`zk` and `zk-index`]] to include support for working with
+This package extends [[https://github.com/localauthor/]['zk' and 'zk-index']] to include support for working with
 files assigned Luhmann-style IDs.
 
 A demo of this package can be viewed here: https://youtu.be/O6iSV4pQQ5g
 
-Currently this package defines Luhmann-style IDs as alphanumeric sequences
-between curly braces. They look like this: {1,1,b,3 }
+Luhmann-style IDs are alphanumeric sequences that immediately follow the
+zk-id in a note's filename. By default, the Luhmann-ID is surrounded by
+parentheses, with each character in the ID delimited by a comma. A note
+with such a Luhmann-ID will have a file name that looks something like:
 
-Note the space after the final character. This is necessary for proper
-sorting.
-
-The ID is part of the file-name, positioned between the zk-id and the
-title.
+        "202012101215 (1,1,a,3,c) The origin of species.md"
 
 Because all files with Luhmann-IDs have normal zk-ids, they are normal
-zk-files. This naming and ID scheme therefore simply offers a different
-organizing scheme within a zk. It is both fully integrated with zk while
-being, nevertheless, completely distinct --- a system within a system.
+zk-files. As a result, the naming and ID scheme supported by this package
+simply offers a different organizing scheme within a zk. It is both fully
+integrated with zk while being, nevertheless, completely distinct --- a
+system within a system.
 
 
-* Add keybindings to zk-index-map
+
+** Add keybindings to zk-index-map
 
 To add these functions to =zk-index-map=, include the following to your
 config file, substituting whatever keybindings you like:
@@ -35,11 +35,7 @@ config file, substituting whatever keybindings you like:
 (define-key zk-index-map (kbd "t") #'zk-luhmann-index-top)
 (define-key zk-index-map (kbd "1") #'zk-luhmann-index-level)
 (define-key zk-index-map (kbd "2") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "3") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "4") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "5") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "6") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "7") #'zk-luhmann-index-level)
+;; and so on...
 (define-key zk-index-map (kbd "8") #'zk-luhmann-index-level)
 (define-key zk-index-map (kbd "9") #'zk-luhmann-index-level)
 #+end_src
@@ -57,17 +53,13 @@ Or, with use-package:
               ("t" . zk-luhmann-index-top)
               ("1" . zk-luhmann-index-level)
               ("2" . zk-luhmann-index-level)
-              ("3" . zk-luhmann-index-level)
-              ("4" . zk-luhmann-index-level)
-              ("5" . zk-luhmann-index-level)
-              ("6" . zk-luhmann-index-level)
-              ("7" . zk-luhmann-index-level)
+              ;; etc
               ("8" . zk-luhmann-index-level)
               ("9" . zk-luhmann-index-level)))
 #+end_src
 
 
-* Completion-at-point
+** Completion-at-point
 
 To add completion at point for files with Luhmann-style IDs, evaluate the following:
 
