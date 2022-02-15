@@ -64,7 +64,7 @@
   "Character delimiting a Luhmann ID."
   :type 'string)
 
-(defvar zk-luhmann-id-regex (concat zk-luhmann-id-prefix
+(defvar zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
                                     "\\([0-9a-zA-Z"
                                     zk-luhmann-id-delimiter
                                     "]*\\)"
