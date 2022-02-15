@@ -64,7 +64,7 @@
   "Character delimiting a Luhmann ID."
   :type 'string)
 
-(defvar zk-luhmann-id-regex (concat zk-luhmann-id-prefix
+(defvar zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
                                     "\\([0-9a-zA-Z"
                                     zk-luhmann-id-delimiter
                                     "]*\\)"
@@ -107,10 +107,10 @@
   (sort list
         (lambda (a b)
           (let ((one
-		 (when (string-match zk-luhmann-id-regex a)
+		 (when (string-match zk-luhmann-id-regexp a)
                    (match-string 1 a)))
                 (two
-		 (when (string-match zk-luhmann-id-regex b)
+		 (when (string-match zk-luhmann-id-regexp b)
                    (match-string 1 b))))
             (string< one two)))))
 
@@ -282,7 +282,6 @@
     (zk-index (zk-luhmann-files)
               zk-index-last-format-function
               #'zk-luhmann-sort)
-    (other-window 1)
     (re-search-forward id nil t)
     (beginning-of-line)
     (pulse-momentary-highlight-one-line nil 'highlight)))
