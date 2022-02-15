@@ -65,7 +65,9 @@
   :type 'string)
 
 (defvar zk-luhmann-id-regex (concat zk-luhmann-id-prefix
-                                    "\\([0-9a-zA-Z,]*\\)"
+                                    "\\([0-9a-zA-Z"
+                                    zk-luhmann-id-delimiter
+                                    "]*\\)"
                                     zk-luhmann-id-postfix)
   "Regexp to match Luhmann-IDs.")
 
@@ -253,7 +255,7 @@
                  (get last-command-event 'ascii-character)))
          (reps (- (- (logand char ?\177) ?0) 1))
          (base-rx (concat zk-luhmann-id-prefix "[0-9]*"))
-         (slug ",.")
+         (slug (concat zk-luhmann-id-delimiter "."))
          (new-slug "")
          (regexp
           (progn
