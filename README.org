@@ -7,18 +7,48 @@ files assigned Luhmann-style IDs.
 A demo of this package can be viewed here: https://youtu.be/O6iSV4pQQ5g
 
 Luhmann-style IDs are alphanumeric sequences that immediately follow the
-zk-id in a note's filename. By default, the Luhmann-ID is surrounded by
+zk-id in a note's filename. By default, the Luhmann ID is surrounded by
 parentheses, with each character in the ID delimited by a comma. A note
-with such a Luhmann-ID will have a file name that looks something like:
+with such a Luhmann ID will have a file name that looks something like:
 
         "202012101215 (1,1,a,3,c) The origin of species.md"
 
-Because all files with Luhmann-IDs have normal zk-ids, they are normal
+Because all files with Luhmann IDs have normal zk-ids, they are normal
 zk-files. As a result, the naming and ID scheme supported by this package
 simply offers a different organizing scheme within a zk. It is both fully
 integrated with zk while being, nevertheless, completely distinct --- a
 system within a system.
 
+** Note on ID prefix and postfix characters
+
+In order for notes with Luhmann IDs to be sorted properly, the character
+immediately following the alphanumeric sequence must have an [[https://ascii.cl][ASCII value]]
+lower than that of the preceding alphanumeric character. The default
+=zk-luhmann-id-postfix= character, the closed parenthesis =)=, meets this
+requirement. Other potential bracketing characters, however, such as ={}=,
+=<>=, =[]=, do not meet this requirement. To use such characters and maintain
+proper sort order, it is necessary to include a space before the postfix
+character. For example, to use curly braces ={}= as prefix and postfix characters,
+you would set the variables as follows:
+
+#+begin_src emacs-lisp
+(setq zk-luhmann-id-prefix "{")
+(setq zk-luhmann-id-postfix " }")
+#+end_src
+
+(Thanks to @jgru for clarifying this.)
+
+If you change the above variables, you should ensure that the
+=zk-luhmann-id-regexp= is set properly by subsequently (re)evaluating the
+following:
+
+#+begin_src emacs-lisp
+(setq zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
+                                   "\\([0-9a-zA-Z"
+                                   zk-luhmann-id-delimiter
+                                   "]*\\)"
+                                   zk-luhmann-id-postfix)
+#+end_src
 
 
 ** Add keybindings to zk-index-map
