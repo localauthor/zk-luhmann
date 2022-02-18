@@ -142,6 +142,7 @@
 (defun zk-luhmann-index ()
   "Open index for Luhmann-ID notes."
   (interactive)
+  (zk-index--clear-query-mode-line)
   (zk-index (zk-luhmann-files) nil 'zk-luhmann-sort))
 
 (defun zk-luhmann-index-sort ()
@@ -171,6 +172,7 @@
 
 (defun zk-luhmann-index-forward ()
   (interactive)
+  (zk-index--clear-query-mode-line)
   (let* ((buffer-string (buffer-string))
 	 (regexp (concat zk-luhmann-id-prefix
                          ".[^"
@@ -211,6 +213,7 @@
 
 (defun zk-luhmann-index-back ()
   (interactive)
+  (zk-index--clear-query-mode-line)
   (zk-luhmann-index-sort)
   (let* ((buffer-string (buffer-string))
 	 (backward-rx (concat zk-luhmann-id-prefix
@@ -250,6 +253,7 @@
 (defun zk-luhmann-index-level ()
   "Set number of sub-branch levels to view."
   (interactive)
+  (zk-index--clear-query-mode-line)
   (let* ((char (if (integerp last-command-event)
                    last-command-event
                  (get last-command-event 'ascii-character)))
