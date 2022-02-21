@@ -7,7 +7,7 @@
 ;; License: GPL-3.0-or-later
 ;; Version: 0.3
 ;; Homepage: https://github.com/localauthor/zk
-;; Package-Requires: ((emacs "24.1")(zk "0.2"))
+;; Package-Requires: ((emacs "24.1")(zk "0.2")(zk-index "0.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -171,6 +171,7 @@
       (zk-luhmann-index))))
 
 (defun zk-luhmann-index-forward ()
+  "Narrow focus to Luhmann notes 'below' note at point."
   (interactive)
   (zk-index--clear-query-mode-line)
   (let* ((buffer-string (buffer-string))
@@ -212,6 +213,7 @@
 	     (zk-luhmann-index-unfold))))))
 
 (defun zk-luhmann-index-back ()
+  "Expand focus to Luhmann notes 'above' note at point."
   (interactive)
   (zk-index--clear-query-mode-line)
   (zk-luhmann-index-sort)
