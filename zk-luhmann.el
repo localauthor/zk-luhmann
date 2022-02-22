@@ -234,7 +234,7 @@
 	  (cond ((eq this-command 'zk-luhmann-index-forward)
 		 (concat
                   id zk-luhmann-id-postfix "\\|"
-                  id zk-luhmann-id-delimiter "." zk-luhmann-id-postfix))
+                  id zk-luhmann-id-delimiter "..?" zk-luhmann-id-postfix))
 		((eq this-command 'zk-luhmann-index-unfold)
 		 (substring id 0 2)))))
     (when id
@@ -281,7 +281,7 @@
                                (concat sub-id zk-luhmann-id-postfix
                                        "\\|"
                                        sub-id zk-luhmann-id-delimiter
-                                       "." zk-luhmann-id-postfix))
+                                       "..?" zk-luhmann-id-postfix))
 		              zk-index-last-format-function
 		              #'zk-luhmann-sort)
                     (re-search-forward id nil t)
