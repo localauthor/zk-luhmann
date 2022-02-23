@@ -107,11 +107,11 @@
   (sort list
         (lambda (a b)
           (let* ((a-list
-                  (progn (string-match zk-luhmann-id-regexp a)
+                  (when (string-match zk-luhmann-id-regexp a)
                          (split-string (match-string 1 a)
                                        zk-luhmann-id-delimiter)))
                  (b-list
-                  (progn (string-match zk-luhmann-id-regexp b)
+                  (when (string-match zk-luhmann-id-regexp b)
                          (split-string (match-string 1 b)
                                        zk-luhmann-id-delimiter)))
                  (count 0)
@@ -150,7 +150,11 @@
                          (setq exit t)
                          (setq return t)))
                       (t (setq count (+ 1 count))))))
-            (cond ((and (not (nth count a-list))
+            (cond ((not a-list)
+                   nil)
+                  ((not b-list)
+                   t)
+                  ((and (not (nth count a-list))
                         (nth count b-list))
                    t)
                   ((and (not (nth count b-list))
