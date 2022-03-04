@@ -240,7 +240,7 @@
                   id zk-luhmann-id-postfix "\\|"
                   id zk-luhmann-id-delimiter "..?" zk-luhmann-id-postfix))
 		((eq this-command 'zk-luhmann-index-unfold)
-		 (substring id 0 2)))))
+                 id))))
     (when id
       (progn
 	(zk-index (zk--directory-files t str)
@@ -248,12 +248,10 @@
 		  #'zk-luhmann-sort)
 	(goto-char (point-min))
 	(re-search-forward id nil t)
-	(beginning-of-line)
-        (when (eq this-command 'zk-luhmann-index-unfold)
-          (pulse-momentary-highlight-one-line nil 'highlight))))
+	(beginning-of-line)))
     (cond ((and (eq this-command 'zk-luhmann-index-unfold)
 		(string= buffer-string (buffer-string)))
-	   (zk-luhmann-index-top))
+           (pulse-momentary-highlight-one-line nil 'highlight))
 	  ((and (eq this-command 'zk-luhmann-index-forward)
 		(string= buffer-string (buffer-string)))
 	   (progn
@@ -275,7 +273,9 @@
 	 (id (progn
 	       (string-match backward-rx line)
 	       (match-string 0 line)))
-	 (sub-id (substring (match-string 0 line) 0 -2)))
+	 (sub-id (progn
+                   (message (format "%s" (length id)))
+                   (substring (match-string 0 line) 0 -2))))
     (cond ((eq 2 (length id))
 	   (zk-index (zk--directory-files t id)
 		     zk-index-last-format-function
