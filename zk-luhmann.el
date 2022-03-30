@@ -261,6 +261,9 @@
 (defun zk-luhmann-index-back ()
   "Expand focus to Luhmann notes 'above' note at point."
   (interactive)
+  (unless (re-search-forward zk-luhmann-id-regexp
+                             (line-end-position) t)
+    (error "Not a Luhmann note"))
   (zk-index--clear-query-mode-line)
   (zk-luhmann-index-sort)
   (let* ((buffer-string (buffer-string))
@@ -273,9 +276,7 @@
 	 (id (progn
 	       (string-match backward-rx line)
 	       (match-string 0 line)))
-	 (sub-id (progn
-                   (message (format "%s" (length id)))
-                   (substring (match-string 0 line) 0 -2))))
+	 (sub-id (substring (match-string 0 line) 0 -2)))
     (cond ((eq 2 (length id))
 	   (zk-index (zk--directory-files t id)
 		     zk-index-last-format-function
