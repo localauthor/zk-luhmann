@@ -73,6 +73,7 @@
 
 ;;; Luhmann ID Support
 
+;;;###autoload
 (defun zk-luhmann ()
   "Find note with Luhmann-IDs."
   (interactive)
@@ -89,17 +90,12 @@
                (complete-with-action action list string predicate))))))
     (find-file file)))
 
-(defun zk-luhmann-group-function (cand transform)
-  "TRANSFORM each CAND for 'zk-luhmann'."
+(defun zk-luhmann-group-function (file transform)
+  "TRANSFORM each FILE for 'zk-luhmann'."
   (if transform
       (progn
-        (string-match (concat "\\(?1:"
-                              zk-id-regexp
-                              "\\).\\(?2:.*?\\."
-                              zk-file-extension
-                              ".*\\)")
-                      cand)
-        (match-string 2 cand))
+        (string-match zk-file-name-regexp file)
+        (match-string 2 file))
     "Luhmann Notes"))
 
 (defun zk-luhmann-sort (list)
@@ -329,6 +325,7 @@
               zk-index-last-format-function
               #'zk-luhmann-sort)))
 
+;;;###autoload
 (defun zk-luhmann-index-go-to-current ()
   "Open index with current note at point."
   (interactive)
