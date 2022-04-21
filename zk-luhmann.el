@@ -7,7 +7,7 @@
 ;; License: GPL-3.0-or-later
 ;; Version: 0.3
 ;; Homepage: https://github.com/localauthor/zk
-;; Package-Requires: ((emacs "24.1")(zk "0.2")(zk-index "0.4"))
+;; Package-Requires: ((emacs "24.4")(zk "0.2")(zk-index "0.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -264,15 +264,18 @@
   (zk-luhmann-index-sort)
   (let* ((buffer-string (buffer-string))
 	 (backward-rx (concat zk-luhmann-id-prefix
-                              ".[^"
-                              zk-luhmann-id-postfix
-                              "]*"))
+                              ".*"
+                              zk-luhmann-id-postfix))
 	 (line (buffer-substring (goto-char (point-min))
 				 (line-end-position)))
 	 (id (progn
 	       (string-match backward-rx line)
 	       (match-string 0 line)))
-	 (sub-id (substring (match-string 0 line) 0 -2)))
+	 (sub-id (string-trim-right id (concat zk-luhmann-id-delimiter
+                                               ".[^"
+                                               zk-luhmann-id-delimiter
+                                               "]*"
+                                               zk-luhmann-id-postfix))))
     (cond ((eq 2 (length id))
 	   (zk-index (zk--directory-files t id)
 		     zk-index-last-format-function
@@ -330,6 +333,7 @@
   "Open index with current note at point."
   (interactive)
   "Open ZK-Index buffer and to line of current note."
+  (zk-index--clear-query-mode-line)
   (let ((id (zk--current-id)))
     (zk-index (zk-luhmann-files)
               zk-index-last-format-function
