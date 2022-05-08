@@ -118,7 +118,7 @@
                  (count 0)
                  (exit)
                  (return))
-            (while (and (eq exit nil)
+            (while (and (not exit)
                         (nth count a-list)
                         (nth count b-list))
               (let* ((alpha (nth count a-list))
@@ -150,6 +150,11 @@
                        (progn
                          (setq exit t)
                          (setq return t)))
+                      ((and (stringp one)
+                            (integerp two))
+                       (progn
+                         (setq exit t)
+                         (setq return nil)))
                       (t (setq count (+ 1 count))))))
             (cond ((not a-list)
                    nil)
