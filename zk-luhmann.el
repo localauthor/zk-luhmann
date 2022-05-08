@@ -94,7 +94,12 @@
   "TRANSFORM each FILE for 'zk-luhmann'."
   (if transform
       (progn
-        (string-match zk-file-name-regexp file)
+        (string-match (concat "\\(?1:"
+                              zk-id-regexp
+                              "\\).\\(?2:.*?\\)\\."
+                              zk-file-extension
+                              ".*")
+                      file)
         (match-string 2 file))
     "Luhmann Notes"))
 
