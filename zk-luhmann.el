@@ -171,14 +171,22 @@
 (defun zk-luhmann-completion-at-point ()
   "Completion at point function for notes with Luhmann-IDs."
   (let ((case-fold-search t)
-        (pt (point)))
+        (origin (point)))
     (save-excursion
-      (save-match-data
- 	(when (re-search-backward zk-luhmann-id-prefix nil t)
-          (list (match-beginning 0)
-                pt
-                (zk-luhmann-format-candidates)
-                :exclusive 'no))))))
+      (when (and (re-search-backward zk-luhmann-id-prefix nil t)
+                 (save-excursion
+                   (not (search-forward zk-luhmann-id-postfix
+                                        origin
+                                        t))))
+        (list (match-end 0)
+              origin
+              (zk-luhmann-format-candidates)
+              :exit-function
+              (lambda (str _status)
+                (delete-char (- -1 (length str)))
+                (insert str)
+                (when zk-enable-link-buttons
+                  (zk-make-button-before-point))))))))
 
 (defun zk-luhmann-files ()
   "List notes with Luhmann-IDs."
