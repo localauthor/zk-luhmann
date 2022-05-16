@@ -64,6 +64,10 @@
   "Character delimiting a Luhmann ID."
   :type 'string)
 
+(defcustom zk-luhmann-indent-index nil
+  "Enable indented view in ZK-Index, default nil."
+  :type 'boolean)
+
 (defvar zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
                                     "\\([0-9a-zA-Z"
                                     zk-luhmann-id-delimiter
@@ -202,12 +206,48 @@
 
 ;;; Luhmann Index
 
+(defun zk-luhmann--index (&rest args)
+  "Wrapper around 'zk-index' to implement 'zk-luhmann-indent-index'."
+  (if zk-luhmann-indent-index
+      (progn
+        (advice-add 'zk-index--insert :override 'zk-luhmann-index--insert)
+        (apply #'zk-index args)
+        (advice-remove 'zk-index--insert 'zk-luhmann-index--insert))
+    (apply #'zk-index args)))
+
+(defun zk-luhmann-index--insert (candidates)
+  "Insert CANDIDATES into ZK-Index."
+  (dolist (file candidates)
+    (let ((id (progn
+                (string-match zk-id-regexp file)
+                (match-string 0 file)))
+          (length (progn
+                    (string-match zk-luhmann-id-regexp file)
+                    (- (length (match-string 0 file)) 4))))
+      (insert-text-button (concat (make-string length ? ) file)
+                          'type 'zk-index
+                          'follow-link t
+                          'face 'default
+                          'action
+                          (lambda (_)
+                            (find-file-other-window
+                             (zk--parse-id 'file-path
+                                           id)))
+                          'help-echo (lambda (_win _obj _pos)
+                                       (format
+                                        "%s"
+                                        (zk--parse-id
+                                         'title
+                                         id)))))
+    (newline))
+  (message "Notes: %s" (length candidates)))
+
 ;;;###autoload
 (defun zk-luhmann-index ()
   "Open index for Luhmann-ID notes."
   (interactive)
   (zk-index--clear-query-mode-line)
-  (zk-index (zk-luhmann-files) nil 'zk-luhmann-sort))
+  (zk-luhmann--index (zk-luhmann-files) nil 'zk-luhmann-sort))
 
 (defun zk-luhmann-index-sort ()
   "Sort index according to Luhmann-IDs."
@@ -222,7 +262,7 @@
   "Focus on top level Luhmann-ID notes."
   (interactive)
   (let ((buffer-string (buffer-string)))
-    (zk-index (zk--directory-files
+    (zk-luhmann--index (zk--directory-files
                t
                (concat zk-luhmann-id-prefix
                        "[^"
@@ -259,7 +299,7 @@
                  id))))
     (when id
       (progn
-	(zk-index (zk--directory-files t str)
+	(zk-luhmann--index (zk--directory-files t str)
 		  zk-index-last-format-function
 		  #'zk-luhmann-sort)
 	(goto-char (point-min))
@@ -298,10 +338,10 @@
                                                "]*"
                                                zk-luhmann-id-postfix))))
     (cond ((eq 2 (length id))
-	   (zk-index (zk--directory-files t id)
+	   (zk-luhmann-index (zk--directory-files t id)
 		     zk-index-last-format-function
 		     #'zk-luhmann-sort))
-	  (t (progn (zk-index (zk--directory-files
+	  (t (progn (zk-luhmann--index (zk--directory-files
                                t
                                (concat sub-id zk-luhmann-id-postfix
                                        "\\|"
@@ -356,7 +396,7 @@
   "Open ZK-Index buffer and to line of current note."
   (zk-index--clear-query-mode-line)
   (let ((id (zk--current-id)))
-    (zk-index (zk-luhmann-files)
+    (zk-luhmann--index (zk-luhmann-files)
               zk-index-last-format-function
               #'zk-luhmann-sort)
     (re-search-forward id nil t)
