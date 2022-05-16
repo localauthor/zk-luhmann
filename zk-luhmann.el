@@ -210,7 +210,7 @@
   "Wrapper around 'zk-index' to implement 'zk-luhmann-indent-index'.
 Passes ARGS to 'zk-index'."
   (if zk-luhmann-indent-index
-      (progn
+      (let ((zk-index-prefix ""))
         (advice-add 'zk-index--insert :override #'zk-luhmann-index--insert)
         (apply #'zk-index args)
         (advice-remove 'zk-index--insert #'zk-luhmann-index--insert))
