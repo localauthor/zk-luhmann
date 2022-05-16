@@ -207,24 +207,28 @@
 ;;; Luhmann Index
 
 (defun zk-luhmann--index (&rest args)
-  "Wrapper around 'zk-index' to implement 'zk-luhmann-indent-index'."
+  "Wrapper around 'zk-index' to implement 'zk-luhmann-indent-index'.
+Passes ARGS to 'zk-index'."
   (if zk-luhmann-indent-index
       (progn
-        (advice-add 'zk-index--insert :override 'zk-luhmann-index--insert)
+        (advice-add 'zk-index--insert :override #'zk-luhmann-index--insert)
         (apply #'zk-index args)
-        (advice-remove 'zk-index--insert 'zk-luhmann-index--insert))
+        (advice-remove 'zk-index--insert #'zk-luhmann-index--insert))
     (apply #'zk-index args)))
 
 (defun zk-luhmann-index--insert (candidates)
   "Insert CANDIDATES into ZK-Index."
   (dolist (file candidates)
-    (let ((id (progn
-                (string-match zk-id-regexp file)
-                (match-string 0 file)))
-          (length (progn
-                    (string-match zk-luhmann-id-regexp file)
-                    (- (length (match-string 0 file)) 4))))
-      (insert-text-button (concat (make-string length ? ) file)
+    (let* ((id (progn
+                 (string-match zk-id-regexp file)
+                 (match-string 0 file)))
+           (length (progn
+                     (string-match zk-luhmann-id-regexp file)
+                     (length (match-string 0 file))))
+           (spaces (if (cl-evenp length)
+                       (-  length 4)
+                     (- length 5))))
+      (insert-text-button (concat (make-string spaces ? ) file)
                           'type 'zk-index
                           'follow-link t
                           'face 'default
@@ -338,7 +342,7 @@
                                                "]*"
                                                zk-luhmann-id-postfix))))
     (cond ((eq 2 (length id))
-	   (zk-luhmann-index (zk--directory-files t id)
+	   (zk-luhmann--index (zk--directory-files t id)
 		     zk-index-last-format-function
 		     #'zk-luhmann-sort))
 	  (t (progn (zk-luhmann--index (zk--directory-files
