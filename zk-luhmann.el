@@ -180,7 +180,9 @@
                                         t))))
         (list (match-end 0)
               origin
-              (zk-luhmann-format-candidates)
+              (completion-table-dynamic
+               (lambda (_)
+                 (zk-luhmann-format-candidates)))
               :exit-function
               (lambda (str _status)
                 (delete-char (- -1 (length str)))
