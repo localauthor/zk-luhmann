@@ -200,8 +200,8 @@
 
 (defun zk-luhmann-format-candidates (&optional files)
   "Format completions candidates for FILES with Luhmann-IDs."
-  (let ((files (if files files
-                 (zk-luhmann-files))))
+  (let ((files (or files
+                   (zk-luhmann-files))))
     (zk--format-candidates files "%t [[%i]]")))
 
 ;;; Luhmann Index
@@ -222,12 +222,14 @@ Passes ARGS to 'zk-index'."
     (let* ((id (progn
                  (string-match zk-id-regexp file)
                  (match-string 0 file)))
-           (length (progn
-                     (string-match zk-luhmann-id-regexp file)
-                     (length (match-string 0 file))))
-           (spaces (if (cl-evenp length)
-                       (-  length 4)
-                     (- length 5))))
+           (length (when (string-match zk-luhmann-id-regexp file)
+                       (length (match-string 0 file))))
+           (postfix-length (length zk-luhmann-id-postfix))
+           (spaces (if length
+                       (if (cl-evenp length)
+                           (-  length (* 2 postfix-length))
+                         (- length (+ 1 (* 2 postfix-length))))
+                     0)))
       (insert-text-button (concat (make-string spaces ? ) file)
                           'type 'zk-index
                           'follow-link t
