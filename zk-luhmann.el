@@ -252,7 +252,7 @@ Passes ARGS to 'zk-index'."
 (defun zk-luhmann-index ()
   "Open index for Luhmann-ID notes."
   (interactive)
-  (zk-index--clear-query-mode-line)
+  (zk-index--clear-mode-line)
   (zk-luhmann--index (zk-luhmann-files) nil 'zk-luhmann-sort))
 
 (defun zk-luhmann-index-sort ()
@@ -283,7 +283,7 @@ Passes ARGS to 'zk-index'."
 (defun zk-luhmann-index-forward ()
   "Narrow focus to Luhmann notes 'below' note at point."
   (interactive)
-  (zk-index--clear-query-mode-line)
+  (zk-index--clear-mode-line)
   (let* ((buffer-string (buffer-string))
 	 (regexp (concat zk-luhmann-id-prefix
                          ".[^"
@@ -310,8 +310,7 @@ Passes ARGS to 'zk-index'."
 		  #'zk-luhmann-sort)
 	(goto-char (point-min))
 	(re-search-forward id nil t)
-	(beginning-of-line)
-        (pulse-momentary-highlight-one-line nil 'highlight)))
+	(beginning-of-line)))
     (cond ((and (eq this-command 'zk-luhmann-index-unfold)
 		(string= buffer-string (buffer-string)))
            (pulse-momentary-highlight-one-line nil 'highlight))
@@ -327,7 +326,7 @@ Passes ARGS to 'zk-index'."
   (unless (re-search-forward zk-luhmann-id-regexp
                              (line-end-position) t)
     (error "Not a Luhmann note"))
-  (zk-index--clear-query-mode-line)
+  (zk-index--clear-mode-line)
   (zk-luhmann-index-sort)
   (let* ((buffer-string (buffer-string))
 	 (backward-rx (concat zk-luhmann-id-prefix
@@ -356,8 +355,7 @@ Passes ARGS to 'zk-index'."
 		              zk-index-last-format-function
 		              #'zk-luhmann-sort)
                     (re-search-forward id nil t)
-                    (beginning-of-line)
-                    (pulse-momentary-highlight-one-line nil 'highlight))))
+                    (beginning-of-line))))
     (when (string= buffer-string (buffer-string))
       (zk-luhmann-index-top))))
 
@@ -370,7 +368,7 @@ Passes ARGS to 'zk-index'."
 (defun zk-luhmann-index-level ()
   "Set number of sub-branch levels to view."
   (interactive)
-  (zk-index--clear-query-mode-line)
+  (zk-index--clear-mode-line)
   (let* ((char (if (integerp last-command-event)
                    last-command-event
                  (get last-command-event 'ascii-character)))
@@ -400,14 +398,13 @@ Passes ARGS to 'zk-index'."
   "Open index with current note at point."
   (interactive)
   "Open ZK-Index buffer and to line of current note."
-  (zk-index--clear-query-mode-line)
+  (zk-index--clear-mode-line)
   (let ((id (zk--current-id)))
     (zk-luhmann--index (zk-luhmann-files)
               zk-index-last-format-function
               #'zk-luhmann-sort)
     (re-search-forward id nil t)
-    (beginning-of-line)
-    (pulse-momentary-highlight-one-line nil 'highlight)))
+    (beginning-of-line)))
 
 (provide 'zk-luhmann)
 ;;; zk-luhmann.el ends here
