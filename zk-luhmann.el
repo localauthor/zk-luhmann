@@ -223,7 +223,7 @@ Passes ARGS to 'zk-index'."
                  (string-match zk-id-regexp file)
                  (match-string 0 file)))
            (length (when (string-match zk-luhmann-id-regexp file)
-                       (length (match-string 0 file))))
+                     (length (match-string 0 file))))
            (postfix-length (length zk-luhmann-id-postfix))
            (spaces (if length
                        (if (cl-evenp length)
@@ -245,7 +245,9 @@ Passes ARGS to 'zk-index'."
                                         (zk--parse-id
                                          'title
                                          id)))))
-    (newline))
+    (unless (eq (length candidates)
+                (count-lines 1 (point)))
+      (newline)))
   (message "Notes: %s" (length candidates)))
 
 ;;;###autoload
