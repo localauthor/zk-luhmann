@@ -218,38 +218,43 @@ Passes ARGS to 'zk-index'."
 
 (defun zk-luhmann-index--insert (candidates)
   "Insert CANDIDATES into ZK-Index."
-  (dolist (file candidates)
-    (let* ((id (progn
-                 (string-match zk-id-regexp file)
-                 (match-string 0 file)))
-           (lid (progn
-                  (string-match zk-luhmann-id-regexp file)
-                  (match-string 0 file)))
-           (reg (concat "[^"
-                        zk-luhmann-id-delimiter
-                        "]"))
-           (spaces (* 2 (length (replace-regexp-in-string
-                                 reg
-                                 ""
-                                 lid)))))
-      (insert-text-button (concat (make-string spaces ? ) file)
-                          'type 'zk-index
-                          'follow-link t
-                          'face 'default
-                          'action
-                          (lambda (_)
-                            (find-file-other-window
-                             (zk--parse-id 'file-path
-                                           id)))
-                          'help-echo (lambda (_win _obj _pos)
-                                       (format
-                                        "%s"
-                                        (zk--parse-id
-                                         'title
-                                         id)))))
-    (unless (eq (length candidates)
-                (count-lines 1 (point)))
-      (newline)))
+  (let (lid-index)
+    (dolist (file candidates)
+      (let* ((id (progn
+                   (string-match zk-id-regexp file)
+                   (match-string 0 file)))
+             (lid (progn
+                    (string-match zk-luhmann-id-regexp file)
+                    (match-string 0 file)))
+             (reg (concat "[^"
+                          (regexp-quote zk-luhmann-id-delimiter)
+                          "]"))
+             (lid-length (* 2 (length (replace-regexp-in-string
+                                       reg
+                                       ""
+                                       lid))))
+             (spaces (progn
+                       (unless lid-index
+                         (setq lid-index lid-length))
+                       (- lid-length lid-index))))
+        (insert-text-button (concat (make-string spaces ? ) file)
+                            'type 'zk-index
+                            'follow-link t
+                            'face 'default
+                            'action
+                            (lambda (_)
+                              (find-file-other-window
+                               (zk--parse-id 'file-path
+                                             id)))
+                            'help-echo (lambda (_win _obj _pos)
+                                         (format
+                                          "%s"
+                                          (zk--parse-id
+                                           'title
+                                           id)))))
+      (unless (eq (length candidates)
+                  (count-lines 1 (point)))
+        (newline))))
   (message "Notes: %s" (length candidates)))
 
 ;;;###autoload
