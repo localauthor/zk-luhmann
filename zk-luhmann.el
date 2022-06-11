@@ -222,14 +222,16 @@ Passes ARGS to 'zk-index'."
     (let* ((id (progn
                  (string-match zk-id-regexp file)
                  (match-string 0 file)))
-           (length (when (string-match zk-luhmann-id-regexp file)
-                     (length (match-string 0 file))))
-           (postfix-length (length zk-luhmann-id-postfix))
-           (spaces (if length
-                       (if (cl-evenp length)
-                           (-  length (* 2 postfix-length))
-                         (- length (+ 1 (* 2 postfix-length))))
-                     0)))
+           (lid (progn
+                  (string-match zk-luhmann-id-regexp file)
+                  (match-string 0 file)))
+           (reg (concat "[^"
+                        zk-luhmann-id-delimiter
+                        "]"))
+           (spaces (* 2 (length (replace-regexp-in-string
+                                 reg
+                                 ""
+                                 lid)))))
       (insert-text-button (concat (make-string spaces ? ) file)
                           'type 'zk-index
                           'follow-link t
