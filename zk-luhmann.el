@@ -311,7 +311,9 @@ Passes ARGS to 'zk-index'."
                   id zk-luhmann-id-postfix "\\|"
                   id zk-luhmann-id-delimiter "..?" zk-luhmann-id-postfix))
 		((eq this-command 'zk-luhmann-index-unfold)
-                 id))))
+                 (concat
+                  id zk-luhmann-id-postfix "\\|"
+                  id zk-luhmann-id-delimiter)))))
     (when id
       (progn
 	(zk-luhmann--index (zk--directory-files t str)
@@ -332,6 +334,7 @@ Passes ARGS to 'zk-index'."
 (defun zk-luhmann-index-back ()
   "Expand focus to Luhmann notes 'above' note at point."
   (interactive)
+  (beginning-of-line)
   (unless (re-search-forward zk-luhmann-id-regexp
                              (line-end-position) t)
     (error "Not a Luhmann note"))
