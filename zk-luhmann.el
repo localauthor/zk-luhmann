@@ -64,8 +64,8 @@
   "Character delimiting a Luhmann ID."
   :type 'string)
 
-(defcustom zk-luhmann-indent-index nil
-  "Enable indented view in ZK-Index, default nil."
+(defcustom zk-luhmann-indent-index t
+  "Enable indented view in ZK-Index."
   :type 'boolean)
 
 (defvar zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
