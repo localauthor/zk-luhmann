@@ -19,26 +19,22 @@ simply offers a different organizing scheme within a zk. It is both fully
 integrated with zk while being, nevertheless, completely distinct --- a
 system within a system.
 
-** Note on ID prefix and postfix characters
+** Setup
 
-In order for notes with Luhmann IDs to be sorted properly, the character
-immediately following the alphanumeric sequence must have an [[https://ascii.cl][ASCII value]]
-lower than that of the preceding alphanumeric character. The default
-=zk-luhmann-id-postfix= character, the closed parenthesis =)=, meets this
-requirement. Other potential bracketing characters, however, such as ={}=,
-=<>=, =[]=, do not meet this requirement. To use such characters and maintain
-proper sort order, it is necessary to include a space before the postfix
-character. For example, to use curly braces ={}= as prefix and postfix characters,
-you would set the variables as follows:
+After setting up  [[https://github.com/localauthor/]['zk' and 'zk-index']], load =zk-luhmann= and set the variables as desired:
 
 #+begin_src emacs-lisp
-(setq zk-luhmann-id-prefix "{")
-(setq zk-luhmann-id-postfix " }")
+(add-to-list 'load-path "/path/to/zk-luhmann.el")
+(require 'zk-luhmann)
+
+(setq zk-luhmann-id-prefix "{"
+      zk-luhmann-id-postfix "}"
+      zk-luhmann-id-delimiter ",")
+
+(setq zk-luhmann-indent-index t)
 #+end_src
 
-(Thanks to @jgru for clarifying this.)
-
-If you change the above variables, you should ensure that the
+Note that if you change the above variables, you should ensure that the
 =zk-luhmann-id-regexp= is set properly by subsequently (re)evaluating the
 following:
 
@@ -50,11 +46,8 @@ following:
                                    zk-luhmann-id-postfix)
 #+end_src
 
-
-** Add keybindings to zk-index-map
-
-To add these functions to =zk-index-map=, include the following to your
-config file, substituting whatever keybindings you like:
+Finally, add =zk-luhmann= functions to =zk-index-map=, by include the
+following to your config file, substituting whatever keybindings you like:
 
 #+begin_src emacs-lisp
 (define-key zk-index-map (kbd "L") #'zk-luhmann-index-sort)
@@ -63,11 +56,6 @@ config file, substituting whatever keybindings you like:
 (define-key zk-index-map (kbd "C-b") #'zk-luhmann-index-back)
 (define-key zk-index-map (kbd "C-t") #'zk-luhmann-index-unfold)
 (define-key zk-index-map (kbd "t") #'zk-luhmann-index-top)
-(define-key zk-index-map (kbd "1") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "2") #'zk-luhmann-index-level)
-;; and so on...
-(define-key zk-index-map (kbd "8") #'zk-luhmann-index-level)
-(define-key zk-index-map (kbd "9") #'zk-luhmann-index-level)
 #+end_src
 
 Or, with use-package:
@@ -80,12 +68,11 @@ Or, with use-package:
               ("C-f" . zk-luhmann-index-forward)
               ("C-b" . zk-luhmann-index-back)
               ("C-t" . zk-luhmann-index-unfold)
-              ("t" . zk-luhmann-index-top)
-              ("1" . zk-luhmann-index-level)
-              ("2" . zk-luhmann-index-level)
-              ;; etc
-              ("8" . zk-luhmann-index-level)
-              ("9" . zk-luhmann-index-level)))
+              ("t" . zk-luhmann-index-top))
+  :custom
+  (zk-luhmann-id-prefix "{")
+  (zk-luhmann-id-postfix "}")
+  (zk-luhmann-indent-index t))
 #+end_src
 
 

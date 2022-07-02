@@ -6,7 +6,7 @@
 ;; Created: January 25, 2022
 ;; License: GPL-3.0-or-later
 ;; Version: 0.3
-;; Homepage: https://github.com/localauthor/zk
+;; Homepage: https://github.com/localauthor/zk-luhmann
 ;; Package-Requires: ((emacs "24.4")(zk "0.2")(zk-index "0.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -95,7 +95,7 @@
     (find-file file)))
 
 (defun zk-luhmann-group-function (file transform)
-  "TRANSFORM each FILE for 'zk-luhmann'."
+  "TRANSFORM each FILE for `zk-luhmann'."
   (if transform
       (progn
         (string-match (concat "\\(?1:"
@@ -108,7 +108,7 @@
     "Luhmann Notes"))
 
 (defun zk-luhmann-sort (list)
-  "Sort LIST of 'zk-luhmann' candidates or files."
+  "Sort LIST of `zk-luhmann' candidates or files."
   (sort list
         (lambda (a b)
           (let* ((a-list
@@ -207,8 +207,8 @@
 ;;; Luhmann Index
 
 (defun zk-luhmann--index (&rest args)
-  "Wrapper around 'zk-index' to implement 'zk-luhmann-indent-index'.
-Passes ARGS to 'zk-index'."
+  "Wrapper around `zk-index' to implement `zk-luhmann-indent-index'.
+Passes ARGS to `zk-index'."
   (if zk-luhmann-indent-index
       (let ((zk-index-prefix ""))
         (advice-add 'zk-index--insert :override #'zk-luhmann-index--insert)
@@ -293,7 +293,7 @@ Passes ARGS to 'zk-index'."
       (zk-luhmann-index))))
 
 (defun zk-luhmann-index-forward ()
-  "Narrow focus to Luhmann notes 'below' note at point."
+  "Narrow focus to Luhmann notes below note at point."
   (interactive)
   (zk-index--reset-mode-line)
   (zk-index--reset-mode-name)
@@ -336,7 +336,7 @@ Passes ARGS to 'zk-index'."
 	     (zk-luhmann-index-unfold))))))
 
 (defun zk-luhmann-index-back ()
-  "Expand focus to Luhmann notes 'above' note at point."
+  "Expand focus to Luhmann notes above note at point."
   (interactive)
   (beginning-of-line)
   (unless (re-search-forward zk-luhmann-id-regexp
