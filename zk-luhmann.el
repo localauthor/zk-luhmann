@@ -276,6 +276,7 @@ Passes ARGS to 'zk-index'."
 (defun zk-luhmann-index-top ()
   "Focus on top level Luhmann-ID notes."
   (interactive)
+  (zk-index--reset-mode-line)
   (let ((buffer-string (buffer-string)))
     (zk-luhmann--index (zk--directory-files
                t
@@ -406,17 +407,19 @@ Passes ARGS to 'zk-index'."
               #'zk-luhmann-sort)))
 
 ;;;###autoload
-(defun zk-luhmann-index-go-to-current ()
+(defun zk-luhmann-index-goto ()
   "Open index with current note at point."
   (interactive)
   "Open ZK-Index buffer and to line of current note."
-  (zk-index--reset-mode-line)
-  (let ((id (zk--current-id)))
+  (let ((id (or (zk--id-at-point)
+                (zk-index--button-at-point-p)
+                (zk--current-id))))
     (zk-luhmann--index (zk-luhmann-files)
-              zk-index-last-format-function
-              #'zk-luhmann-sort)
+                       zk-index-last-format-function
+                       #'zk-luhmann-sort)
     (re-search-forward id nil t)
-    (beginning-of-line)))
+    (beginning-of-line)
+    (zk-index--reset-mode-line)))
 
 (provide 'zk-luhmann)
 ;;; zk-luhmann.el ends here
