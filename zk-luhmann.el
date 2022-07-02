@@ -262,6 +262,7 @@ Passes ARGS to 'zk-index'."
   "Open index for Luhmann-ID notes."
   (interactive)
   (zk-index--reset-mode-line)
+  (zk-index--reset-mode-name)
   (zk-luhmann--index (zk-luhmann-files) nil 'zk-luhmann-sort))
 
 (defun zk-luhmann-index-sort ()
@@ -277,6 +278,7 @@ Passes ARGS to 'zk-index'."
   "Focus on top level Luhmann-ID notes."
   (interactive)
   (zk-index--reset-mode-line)
+  (zk-index--reset-mode-name)
   (let ((buffer-string (buffer-string)))
     (zk-luhmann--index (zk--directory-files
                t
@@ -294,6 +296,7 @@ Passes ARGS to 'zk-index'."
   "Narrow focus to Luhmann notes 'below' note at point."
   (interactive)
   (zk-index--reset-mode-line)
+  (zk-index--reset-mode-name)
   (let* ((buffer-string (buffer-string))
 	 (regexp (concat zk-luhmann-id-prefix
                          ".[^"
