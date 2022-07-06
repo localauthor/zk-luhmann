@@ -259,7 +259,7 @@ Passes ARGS to `zk-index'."
   (interactive)
   (zk-index--reset-mode-line)
   (zk-index--reset-mode-name)
-  (zk-luhmann--index (zk-luhmann-files) nil 'zk-luhmann-sort))
+  (zk-luhmann--index (zk-luhmann-files) nil 'zk-luhmann-sort (buffer-name)))
 
 (defun zk-luhmann-index-sort ()
   "Sort index according to Luhmann-IDs."
@@ -268,7 +268,8 @@ Passes ARGS to `zk-index'."
     (when (listp file-list)
       (zk-index-refresh file-list
                         zk-index-last-format-function
-                        #'zk-luhmann-sort))))
+                        #'zk-luhmann-sort
+                        (buffer-name)))))
 
 (defun zk-luhmann-index-top ()
   "Focus on top level Luhmann-ID notes."
@@ -284,7 +285,8 @@ Passes ARGS to `zk-index'."
                        "]*"
                        zk-luhmann-id-postfix))
 	      zk-index-last-format-function
-	      #'zk-luhmann-sort)
+	      #'zk-luhmann-sort
+              (buffer-name))
     (when (string= buffer-string (buffer-string))
       (zk-luhmann-index))))
 
@@ -318,7 +320,8 @@ Passes ARGS to `zk-index'."
       (progn
 	(zk-luhmann--index (zk--directory-files t str)
 		  zk-index-last-format-function
-		  #'zk-luhmann-sort)
+		  #'zk-luhmann-sort
+                  (buffer-name))
 	(goto-char (point-min))
 	(re-search-forward id nil t)
 	(beginning-of-line)))
@@ -357,7 +360,8 @@ Passes ARGS to `zk-index'."
     (cond ((eq 2 (length id))
 	   (zk-luhmann--index (zk--directory-files t id)
 		     zk-index-last-format-function
-		     #'zk-luhmann-sort))
+		     #'zk-luhmann-sort
+                     (buffer-name)))
 	  (t (progn (zk-luhmann--index (zk--directory-files
                                t
                                (concat sub-id zk-luhmann-id-postfix
@@ -365,7 +369,8 @@ Passes ARGS to `zk-index'."
                                        sub-id zk-luhmann-id-delimiter
                                        "..?" zk-luhmann-id-postfix))
 		              zk-index-last-format-function
-		              #'zk-luhmann-sort)
+		              #'zk-luhmann-sort
+                              (buffer-name))
                     (re-search-forward id nil t)
                     (beginning-of-line))))
     (when (string= buffer-string (buffer-string))
@@ -403,7 +408,8 @@ Passes ARGS to `zk-index'."
                        current-files))))
     (zk-index files
               zk-index-last-format-function
-              #'zk-luhmann-sort)))
+              #'zk-luhmann-sort
+              (buffer-name))))
 
 ;;;###autoload
 (defun zk-luhmann-index-goto ()
@@ -414,7 +420,8 @@ Passes ARGS to `zk-index'."
                 (zk--current-id))))
     (zk-luhmann--index (zk-luhmann-files)
                        zk-index-last-format-function
-                       #'zk-luhmann-sort)
+                       #'zk-luhmann-sort
+                       (buffer-name))
     (re-search-forward id nil t)
     (beginning-of-line)
     (zk-index--reset-mode-line)))
