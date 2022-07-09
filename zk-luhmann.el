@@ -421,7 +421,7 @@ Passes ARGS to `zk-index'."
     (zk-luhmann--index (zk-luhmann-files)
                        zk-index-last-format-function
                        #'zk-luhmann-sort
-                       (buffer-name))
+                       nil)
     (re-search-forward id nil t)
     (beginning-of-line)
     (zk-index--reset-mode-line)))
