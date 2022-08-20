@@ -7,7 +7,7 @@
 ;; License: GPL-3.0-or-later
 ;; Version: 0.3
 ;; Homepage: https://github.com/localauthor/zk-luhmann
-;; Package-Requires: ((emacs "24.4")(zk "0.4")(zk-index "0.6"))
+;; Package-Requires: ((emacs "25.1")(zk "0.4")(zk-index "0.6"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
