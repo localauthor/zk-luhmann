@@ -425,19 +425,29 @@ Passes ARGS to `zk-index'."
                 (buffer-name)))))
 
 ;;;###autoload
-(defun zk-luhmann-index-goto ()
-  "Open index with current note at point."
-  (interactive)
-  (let ((id (or (zk--id-at-point)
-                (zk-index--button-at-point-p)
-                (zk--current-id))))
-    (zk-luhmann--index (zk-luhmann-files)
-                       zk-index-last-format-function
-                       #'zk-luhmann-sort
-                       nil)
-    (re-search-forward id nil t)
-    (beginning-of-line)
-    (zk-index--reset-mode-line)))
+(defun zk-luhmann-index-goto (&optional arg)
+  "Open index to selected note."
+  (interactive (list (or (setq arg (or (zk--id-at-point)
+                                       (zk-index--button-at-point-p))))))
+  ;;(zk--select-file "Select: " (zk-luhmann-files)))))
+  (if arg
+      (ignore-errors (setq arg (substring-no-properties (zk--parse-file 'id arg))))
+    (setq arg (zk--current-id)))
+  (if (member (zk--parse-id 'file-path arg) (zk-luhmann-files))
+      (progn
+        (zk-luhmann--index (zk-luhmann-files)
+                           zk-index-last-format-function
+                           #'zk-luhmann-sort
+                           nil)
+        (when (listp arg)
+          (setq arg (car arg)))
+        (re-search-forward arg nil t)
+        (beginning-of-line)
+        (zk-index--reset-mode-line)
+        (zk-index))
+    (user-error "Not a Luhmann note")))
+;; BUG: Doesn't highlight line when called from embark-act on zk-file;
+;; seems to be waiting for input
 
 (provide 'zk-luhmann)
 ;;; zk-luhmann.el ends here
