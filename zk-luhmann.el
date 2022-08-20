@@ -69,11 +69,12 @@
   :type 'boolean)
 
 (defvar zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
-                                    "\\([0-9a-zA-Z"
-                                    zk-luhmann-id-delimiter
-                                    "]*\\)"
-                                    zk-luhmann-id-postfix)
+                                     "\\([0-9a-zA-Z"
+                                     zk-luhmann-id-delimiter
+                                     "]*\\)"
+                                     zk-luhmann-id-postfix)
   "Regexp to match Luhmann-IDs.")
+
 
 ;;; Luhmann ID Support
 
@@ -178,17 +179,21 @@
                    (not (search-forward zk-luhmann-id-postfix
                                         origin
                                         t))))
-        (list (match-end 0)
-              origin
-              (completion-table-dynamic
-               (lambda (_)
-                 (zk-luhmann-format-candidates)))
-              :exit-function
-              (lambda (str _status)
-                (delete-char (- -1 (length str)))
-                (insert str)
-                (when zk-enable-link-buttons
-                  (zk-make-button-before-point))))))))
+        (let ((start (match-end 0))
+              (candidates (zk-luhmann-format-candidates)))
+          (list start
+                origin
+                (lambda (string predicate action)
+                  (if (eq action 'metadata)
+                      `(metadata
+                        (display-sort-function . zk-luhmann-sort))
+                    (complete-with-action action candidates string predicate)))
+                :exit-function
+                (lambda (str _status)
+                  (delete-char (- -1 (length str)))
+                  (insert str)
+                  (when zk-enable-link-buttons
+                    (zk-make-button-before-point)))))))))
 
 (defun zk-luhmann-files ()
   "List notes with Luhmann-IDs."
