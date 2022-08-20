@@ -256,7 +256,7 @@ Passes ARGS to `zk-index'."
       (unless (eq (length candidates)
                   (count-lines 1 (point)))
         (newline))))
-  (message "Notes: %s" (length candidates)))
+  (zk-index--set-mode-name (format " [%s]" (length candidates))))
 
 ;;;###autoload
 (defun zk-luhmann-index ()
