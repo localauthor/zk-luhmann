@@ -219,13 +219,14 @@ Passes ARGS to `zk-index'."
 
 (defun zk-luhmann-index--insert (candidates)
   "Insert CANDIDATES into ZK-Index."
+  (garbage-collect)
   (let (lid-index)
     (dolist (file candidates)
       (let* ((id (progn
                    (string-match zk-id-regexp file)
                    (match-string 0 file)))
              (lid (progn
-                    (string-match zk-luhmann-id-regexp file)
+                    (string-match (zk-luhmann-id-regexp) file)
                     (match-string 0 file)))
              (reg (concat "[^"
                           (regexp-quote zk-luhmann-id-delimiter)
