@@ -68,12 +68,14 @@
   "Enable indented view in ZK-Index."
   :type 'boolean)
 
-(defvar zk-luhmann-id-regexp (concat zk-luhmann-id-prefix
-                                     "\\([0-9a-zA-Z"
-                                     zk-luhmann-id-delimiter
-                                     "]*\\)"
-                                     zk-luhmann-id-postfix)
-  "Regexp to match Luhmann-IDs.")
+(defmacro zk-luhmann-id-regexp ()
+  "Make regexp to match Luhmann-IDs.
+Based on defcustoms `zk-luhmann-id-prefix', `zk-luhmann-id-postfix', and `zk-luhmann-id-delimiter'."
+  '(concat zk-luhmann-id-prefix
+           "\\([0-9a-zA-Z"
+           zk-luhmann-id-delimiter
+           "]*\\)"
+           zk-luhmann-id-postfix))
 
 
 ;;; Luhmann ID Support
@@ -113,11 +115,11 @@
   (sort list
         (lambda (a b)
           (let* ((a-list
-                  (when (string-match zk-luhmann-id-regexp a)
+                  (when (string-match (zk-luhmann-id-regexp) a)
                     (split-string (match-string 1 a)
                                   zk-luhmann-id-delimiter)))
                  (b-list
-                  (when (string-match zk-luhmann-id-regexp b)
+                  (when (string-match (zk-luhmann-id-regexp) b)
                     (split-string (match-string 1 b)
                                   zk-luhmann-id-delimiter)))
                  (count 0)
@@ -349,7 +351,7 @@ Passes ARGS to `zk-index'."
   (interactive)
   (when (eq major-mode 'zk-index-mode)
     (beginning-of-line)
-    (unless (re-search-forward zk-luhmann-id-regexp
+    (unless (re-search-forward (zk-luhmann-id-regexp)
                                (line-end-position) t)
       (error "Not a Luhmann note"))
     (zk-index--reset-mode-line)
