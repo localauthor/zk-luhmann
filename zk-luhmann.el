@@ -68,6 +68,11 @@
   "Enable indented view in ZK-Index."
   :type 'boolean)
 
+(defcustom zk-luhmann-count-format "- [%s]"
+  "If non-nil, format for displaying number of subfiles in index.
+Set to nil to disable display of count."
+  :type 'string)
+
 (defmacro zk-luhmann-id-regexp ()
   "Make regexp to match Luhmann-IDs.
 Based on defcustoms `zk-luhmann-id-prefix', `zk-luhmann-id-postfix', and `zk-luhmann-id-delimiter'."
@@ -222,7 +227,9 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index--insert (candidates)
   "Insert CANDIDATES into ZK-Index."
   (garbage-collect)
-  (let (lid-index)
+  (let (lid-index
+        (inhibit-message nil)
+        (zk-alist (zk--alist)))
     (dolist (file candidates)
       (let* ((id (progn
                    (string-match zk-id-regexp file)
@@ -230,6 +237,8 @@ Passes ARGS to `zk-index'."
              (lid (progn
                     (string-match (zk-luhmann-id-regexp) file)
                     (match-string 0 file)))
+             (drawer-count (when zk-luhmann-count-format
+                             (format zk-luhmann-count-format (zk-luhmann--count zk-alist lid))))
              (reg (concat "[^"
                           (regexp-quote zk-luhmann-id-delimiter)
                           "]"))
@@ -241,7 +250,9 @@ Passes ARGS to `zk-index'."
                        (unless lid-index
                          (setq lid-index lid-length))
                        (- lid-length lid-index))))
-        (insert-text-button (concat (make-string spaces ? ) file)
+        (insert-text-button (concat (make-string spaces ? )
+                                    file
+                                    drawer-count)
                             'type 'zk-index
                             'follow-link t
                             'face 'default
@@ -451,6 +462,14 @@ Passes ARGS to `zk-index'."
     (user-error "Not a Luhmann note")))
 ;; BUG: Doesn't highlight line when called from embark-act on zk-file;
 ;; seems to be waiting for input
+
+(defun zk-luhmann--count (zk-alist lid)
+  "Return number of files under Luhmann ID LID."
+  (let ((count -1))
+    (dolist (item zk-alist)
+      (when (string-match (substring lid 0 -1) (cadr item))
+        (setq count (1+ count))))
+    count))
 
 (provide 'zk-luhmann)
 ;;; zk-luhmann.el ends here
