@@ -75,7 +75,8 @@ Set to nil to disable display of count."
 
 (defmacro zk-luhmann-id-regexp ()
   "Make regexp to match Luhmann-IDs.
-Based on defcustoms `zk-luhmann-id-prefix', `zk-luhmann-id-postfix', and `zk-luhmann-id-delimiter'."
+Based on defcustoms `zk-luhmann-id-prefix', `zk-luhmann-id-postfix',
+and `zk-luhmann-id-delimiter'."
   '(concat zk-luhmann-id-prefix
            "\\([0-9a-zA-Z"
            zk-luhmann-id-delimiter
@@ -426,7 +427,7 @@ Passes ARGS to `zk-index'."
                 (dotimes (_ reps)
                   (setq new-slug (concat new-slug slug))))
               (concat base-rx new-slug zk-luhmann-id-postfix)))
-           (current-files (zk--parse-id 'file-path (zk-index--current-id-list)))
+           (current-files (zk--parse-id 'file-path (zk-index--current-id-list (buffer-name))))
            (files (remq nil
                         (mapcar
                          (lambda (x)
@@ -446,7 +447,7 @@ Passes ARGS to `zk-index'."
   ;;(zk--select-file "Select: " (zk-luhmann-files)))))
   (if arg
       (ignore-errors (setq arg (substring-no-properties (zk--parse-file 'id arg))))
-    (setq arg (zk--current-id)))
+    (setq arg (zk--file-id buffer-file-name)))
   (if (member (zk--parse-id 'file-path arg) (zk-luhmann-files))
       (progn
         (zk-luhmann--index (zk-luhmann-files)
@@ -464,7 +465,8 @@ Passes ARGS to `zk-index'."
 ;; seems to be waiting for input
 
 (defun zk-luhmann--count (zk-alist lid)
-  "Return number of files under Luhmann ID LID."
+  "Return number of files under Luhmann ID LID.
+Takes ZK-ALIST for efficiency when called in a loop."
   (let ((count -1))
     (dolist (item zk-alist)
       (when (string-match (substring lid 0 -1) (cadr item))
