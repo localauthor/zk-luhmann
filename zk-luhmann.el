@@ -367,7 +367,9 @@ Passes ARGS to `zk-index'."
                                (line-end-position) t)
       (error "Not a Luhmann note"))
     (zk-index--reset-mode-line)
-    (zk-luhmann-index-sort)
+    (unless (eq zk-index-last-sort-function
+                'zk-luhmann-sort)
+      (zk-luhmann-index-sort))
     (let* ((buffer-string (buffer-string))
 	   (backward-rx (concat zk-luhmann-id-prefix
                                 ".*"
