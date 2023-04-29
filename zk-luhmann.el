@@ -446,25 +446,25 @@ Passes ARGS to `zk-index'."
   "Open index to selected note."
   (interactive (list (or (setq arg (or (zk--id-at-point)
                                        (zk-index--button-at-point-p))))))
-  ;;(zk--select-file "Select: " (zk-luhmann-files)))))
-  (if arg
-      (ignore-errors (setq arg (substring-no-properties (zk--parse-file 'id arg))))
-    (setq arg (zk--file-id buffer-file-name)))
-  (if (member (zk--parse-id 'file-path arg) (zk-luhmann-files))
-      (progn
-        (zk-luhmann--index (zk-luhmann-files)
-                           zk-index-last-format-function
-                           #'zk-luhmann-sort
-                           nil)
-        (when (listp arg)
-          (setq arg (car arg)))
-        (re-search-forward arg nil t)
-        (beginning-of-line)
-        (zk-index--reset-mode-line)
-        (zk-index))
-    (user-error "Not a Luhmann note")))
-;; BUG: Doesn't highlight line when called from embark-act on zk-file;
-;; seems to be waiting for input
+  (let ((zk-luhmann-count-format nil)) ; for efficiency
+    (if arg
+        (ignore-errors (setq arg (substring-no-properties (zk--parse-file 'id arg))))
+      (setq arg (zk--file-id buffer-file-name)))
+    (if (member (zk--parse-id 'file-path arg) (zk-luhmann-files))
+        (progn
+          (zk-luhmann--index (zk-luhmann-files)
+                             zk-index-last-format-function
+                             #'zk-luhmann-sort
+                             nil)
+          (when (listp arg)
+            (setq arg (car arg)))
+          (re-search-forward arg nil t)
+          (beginning-of-line)
+          (zk-index--reset-mode-line)
+          (zk-index))
+      (user-error "Not a Luhmann note"))))
+  ;; BUG: Doesn't highlight line when called from embark-act on zk-file;
+  ;; seems to be waiting for input
 
 (defun zk-luhmann--count (zk-alist lid)
   "Return number of files under Luhmann ID LID.
