@@ -227,7 +227,7 @@ Passes ARGS to `zk-index'."
 
 (defun zk-luhmann-index--insert (candidates)
   "Insert CANDIDATES into ZK-Index."
-  (garbage-collect)
+  ;; TODO add count threshold
   (let (lid-index
         (inhibit-message nil)
         (zk-alist (zk--alist)))
@@ -238,7 +238,8 @@ Passes ARGS to `zk-index'."
              (lid (progn
                     (string-match (zk-luhmann-id-regexp) file)
                     (match-string 0 file)))
-             (drawer-count (when zk-luhmann-count-format
+             (drawer-count (when (and zk-luhmann-count-format
+                                      (> 100 (length candidates)))
                              (format zk-luhmann-count-format (zk-luhmann--count zk-alist lid))))
              (reg (concat "[^"
                           (regexp-quote zk-luhmann-id-delimiter)
@@ -257,17 +258,8 @@ Passes ARGS to `zk-index'."
                             'type 'zk-index
                             'follow-link t
                             'face 'default
-                            'action
-                            (lambda (_)
-                              (find-file-other-window
-                               (zk--parse-id 'file-path
-                                             id)))
-                            'help-echo (lambda (_win _obj _pos)
-                                         (format
-                                          "%s"
-                                          (zk--parse-id
-                                           'title
-                                           id)))))
+                            'action 'zk-index-button-action
+                            'help-echo zk-index-help-echo-function))
       (unless (eq (length candidates)
                   (count-lines 1 (point)))
         (newline))))
@@ -277,10 +269,11 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index ()
   "Open index for Luhmann-ID notes."
   (interactive)
-  (when (eq major-mode 'zk-index-mode)
-    (zk-index--reset-mode-line)
-    (zk-index--reset-mode-name)
-    (zk-luhmann--index (zk-luhmann-files) nil 'zk-luhmann-sort (buffer-name))))
+  (let ((zk-luhmann-count-format nil)) ; for efficiency
+    (when (eq major-mode 'zk-index-mode)
+      (zk-index--reset-mode-line)
+      (zk-index--reset-mode-name)
+      (zk-luhmann--index (zk-luhmann-files) nil 'zk-luhmann-sort (buffer-name)))))
 
 (defun zk-luhmann-index-sort ()
   "Sort index according to Luhmann-IDs."
@@ -443,7 +436,8 @@ Passes ARGS to `zk-index'."
 
 ;;;###autoload
 (defun zk-luhmann-index-goto (&optional arg)
-  "Open index to selected note."
+  "Open index to selected note.
+ARG optional."
   (interactive (list (or (setq arg (or (zk--id-at-point)
                                        (zk-index--button-at-point-p))))))
   (let ((zk-luhmann-count-format nil)) ; for efficiency
