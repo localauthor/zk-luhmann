@@ -436,28 +436,28 @@ Passes ARGS to `zk-index'."
 ;;;###autoload
 (defun zk-luhmann-index-goto (&optional arg)
   "Open index to selected note.
-ARG optional."
-  (interactive (list (or (setq arg (or (zk--id-at-point)
-                                       (zk-index--button-at-point-p))))))
-  (let ((zk-luhmann-count-format nil)) ; for efficiency
-    (if arg
-        (ignore-errors (setq arg (substring-no-properties (zk--parse-file 'id arg))))
-      (setq arg (zk--file-id buffer-file-name)))
-    (if (member (zk--parse-id 'file-path arg) (zk-luhmann-files))
+For details of ARG, see `zk--processor'."
+  (interactive (list (or (zk--id-at-point)
+                         (zk-index--button-at-point-p)
+                         (zk--select-file))))
+  (let* ((zk-luhmann-count-format nil) ; for efficiency
+         (file (car (zk--processor arg)))
+         (id (zk--parse-file 'id file))
+         (luhmann-files (zk-luhmann-files)))
+    (if (member file luhmann-files)
         (progn
-          (zk-luhmann--index (zk-luhmann-files)
+          (zk-luhmann--index luhmann-files
                              zk-index-last-format-function
                              #'zk-luhmann-sort
                              nil)
-          (when (listp arg)
-            (setq arg (car arg)))
-          (re-search-forward arg nil t)
+          (re-search-forward id nil t)
           (beginning-of-line)
           (zk-index--reset-mode-line)
           (zk-index))
       (user-error "Not a Luhmann note"))))
-  ;; BUG: Doesn't highlight line when called from embark-act on zk-file;
-  ;; seems to be waiting for input
+;; BUG: Doesn't highlight line when called from embark-act on zk-file;
+;; seems to be waiting for input;
+;; known issue in embark: https://github.com/oantolin/embark/issues/470
 
 (defun zk-luhmann--count (zk-alist lid)
   "Return number of files under Luhmann ID LID.
