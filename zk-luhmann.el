@@ -7,7 +7,7 @@
 ;; License: GPL-3.0-or-later
 ;; Version: 0.3
 ;; Homepage: https://github.com/localauthor/zk-luhmann
-;; Package-Requires: ((emacs "25.1")(zk "0.4")(zk-index "0.6"))
+;; Package-Requires: ((emacs "25.1")(zk "0.4")(zk-index "0.9"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -228,7 +228,6 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index--insert (candidates)
   "Insert CANDIDATES into ZK-Index."
   (let (lid-index
-        (inhibit-message nil)
         (zk-alist (zk--alist)))
     (dolist (file candidates)
       (set-match-data nil)
@@ -250,19 +249,12 @@ Passes ARGS to `zk-index'."
              (spaces (progn
                        (unless lid-index
                          (setq lid-index lid-length))
-                       (- lid-length lid-index))))
-        (insert-text-button (concat (make-string spaces ? )
-                                    file
-                                    drawer-count)
-                            'type 'zk-index
-                            'follow-link t
-                            'face 'default
-                            'action 'zk-index-button-action
-                            'help-echo zk-index-help-echo-function))
-      (unless (eq (length candidates)
-                  (count-lines 1 (point)))
-        (newline))))
-  (zk-index--set-mode-name (format " [%s]" (length candidates))))
+                       (- lid-length lid-index)))
+             (line (concat (make-string spaces ? )
+                           file drawer-count "\n")))
+        (insert line)))
+    (zk-index--make-buttons)
+    (zk-index--set-mode-name (format " [%s]" (length candidates)))))
 
 ;;;###autoload
 (defun zk-luhmann-index ()
