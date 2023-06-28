@@ -503,7 +503,8 @@ Passes ARGS to `zk-index'."
                 (dotimes (_ reps)
                   (setq new-slug (concat new-slug slug))))
               (concat base-rx new-slug zk-luhmann-id-postfix)))
-           (current-files (zk--parse-id 'file-path (zk-index--current-id-list (buffer-name))))
+           (current-files (mapcar (lambda (id) (zk--parse-id 'file-path id))
+                                  (zk-index--current-id-list (buffer-name))))
            (files (remq nil
                         (mapcar
                          (lambda (x)
