@@ -429,9 +429,11 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index-goto (&optional arg)
   "Open index to selected note.
 For details of ARG, see `zk--processor'."
-  (interactive (list (or (zk--id-at-point)
-                         (zk-index--button-at-point-p)
-                         (zk--select-file))))
+  (interactive (list (zk--select-file
+                      nil
+                      (zk-luhmann-files)
+                      nil
+                      #'zk-index--sort-modified)))
   (let* ((zk-luhmann-count-format nil) ; for efficiency
          (file (car (zk--processor arg)))
          (id (zk--parse-file 'id file))
@@ -447,9 +449,13 @@ For details of ARG, see `zk--processor'."
           (zk-index--reset-mode-line)
           (zk-index))
       (user-error "Not a Luhmann note"))))
-;; BUG: Doesn't highlight line when called from embark-act on zk-file;
-;; seems to be waiting for input;
-;; known issue in embark: https://github.com/oantolin/embark/issues/470
+;; BUG: Doesn't highlight line when called from embark-act on zk-file; seems
+;; to be waiting for input; known issue in embark:
+;; https://github.com/oantolin/embark/issues/470
+;; NOTE: Including 'at-point' id detection in the function's interactive call
+;; does not play well with Embark, so we have to pick one or the other; I
+;; pick calling embark at point over calling the function itself at point; to
+;; get at point functionality, make a wrapper function and call that
 
 (defun zk-luhmann--count (zk-alist lid)
   "Return number of files under Luhmann ID LID.
