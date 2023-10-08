@@ -73,6 +73,21 @@
 Set to nil to disable display of count."
   :type 'string)
 
+(defcustom zk-luhmann-link-formatting nil
+  "Enable `zk-luhmann-link-format' and `zk-luhmann-link-and-title-format'.
+Set to non-nil before loading the package to override
+  `zk--insert-link' and `zk-copy-link-and-title' with
+  `zk-luhmann--insert-link' and `zk-luhmann-copy-link-and-title'."
+  :type 'boolean)
+
+(defcustom zk-luhmann-link-format "%l [[%i]]"
+  "Format for inserting Luhmann-id and link."
+  :type 'string)
+
+(defcustom zk-luhmann-link-and-title-format "%l %t [[%i]]"
+  "Format for inserting Luhmann-id, title, and link."
+  :type 'string)
+
 (defmacro zk-luhmann-id-regexp ()
   "Make regexp to match Luhmann-IDs.
 Based on defcustoms `zk-luhmann-id-prefix', `zk-luhmann-id-postfix',
@@ -82,7 +97,6 @@ and `zk-luhmann-id-delimiter'."
            zk-luhmann-id-delimiter
            "]*\\)"
            zk-luhmann-id-postfix))
-
 
 ;;; Luhmann ID Support
 
@@ -213,6 +227,80 @@ and `zk-luhmann-id-delimiter'."
                    (zk-luhmann-files))))
     (zk--format-candidates files "%t [[%i]]")))
 
+;;; Insert Link
+
+(when zk-luhmann-link-formatting
+  (advice-add 'zk--insert-link :override #'zk-luhmann--insert-link)
+  (advice-add 'zk--insert-link-and-title :override #'zk-luhmann--insert-link-and-title)
+  (advice-add 'zk-copy-link-and-title :override #'zk-luhmann-copy-link-and-title))
+
+(defun zk-luhmann--insert-link (arg)
+  "Insert link to note from ARG, with button optional."
+  (insert (zk-luhmann--formatted-string arg 'no-title))
+  (when zk-enable-link-buttons
+    (zk-make-link-buttons)))
+
+(defun zk-luhmann--insert-link-and-title (arg &optional title)
+  "Insert link from ARG according to `zk-luhmann-link-and-title-format'.
+Optional TITLE."
+  (if title ;; needed in zk-new-note
+      (insert (zk--format zk-link-and-title-format arg title))
+    (insert (zk-luhmann--formatted-string arg)))
+  (when zk-enable-link-buttons
+    (zk-make-link-buttons)))
+
+(defun zk-luhmann--formatted-string (arg &optional format)
+  "Format a multi-line string from items in ARG, following FORMAT."
+  (let ((items (zk-luhmann--formatter arg format)))
+    (mapconcat #'identity items "\n\n")))
+
+(defun zk-luhmann--formatter (arg &optional no-title no-proc)
+  "Return formatted list from FILES.
+ARG can be zk-file or zk-id as string or list, single or multiple.
+When NO-TITLE, use `zk-link-format' or `zk-luhmann-link-format.'
+When NO-PROC is non-nil, bypass `zk--processor'."
+  (let ((files (if no-proc
+                   arg
+                 (zk--processor arg)))
+        lid title id items)
+    (dolist (file files)
+      (if (string-match (zk-luhmann-id-regexp) file)
+          (progn
+            (setq lid (match-string 0 file))
+            (string-match (zk-file-name-regexp) file)
+            (setq title (replace-regexp-in-string
+                         (zk-luhmann-id-regexp) ""
+                         (replace-regexp-in-string
+                          zk-file-name-separator " "
+                          (match-string 2 file))))
+            (setq id (match-string 1 file))
+            (push (format-spec (if no-title
+                                   zk-luhmann-link-format
+                                 zk-luhmann-link-and-title-format)
+                               `((?i . ,id)
+                                 (?t . ,title)
+                                 (?l . ,lid)))
+                  items))
+        (when (string-match (zk-file-name-regexp) file)
+          (setq id (match-string 1 file))
+          (setq title (replace-regexp-in-string zk-file-name-separator " "
+                                                (match-string 2 file)))
+          (push (zk--format (if no-title
+                                zk-link-format
+                              zk-link-and-title-format)
+                            id title)
+                items))))
+    items))
+
+;;; Copy Link
+
+(defun zk-luhmann-copy-link-and-title (arg)
+  "Copy link and title for id or file ARG."
+  (interactive (list (funcall zk-select-file-function "Copy link: ")))
+  (let ((links (zk-luhmann--formatted-string arg)))
+    (kill-new links)
+    (message "Copied: %s" links)))
+
 ;;; Luhmann Index
 
 (defun zk-luhmann--index (&rest args)
@@ -336,9 +424,9 @@ Passes ARGS to `zk-index'."
       (cond ((and (eq this-command 'zk-luhmann-index-unfold)
 		  (string= buffer-string (buffer-string)))
              (pulse-momentary-highlight-one-line nil 'highlight))
-	    ((and (eq this-command 'zk-luhmann-index-forward)
-		  (string= buffer-string (buffer-string)))
-	     (progn
+            ((and (eq this-command 'zk-luhmann-index-forward)
+	          (string= buffer-string (buffer-string)))
+             (progn
 	       (setq this-command 'zk-luhmann-index-unfold)
 	       (zk-luhmann-index-unfold)))))))
 
