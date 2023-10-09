@@ -202,7 +202,7 @@ and `zk-luhmann-id-delimiter'."
                                         origin
                                         t))))
         (let ((start (match-end 0))
-              (candidates (zk-luhmann-format-candidates)))
+              (candidates (zk-luhmann-candidates)))
           (list start
                 origin
                 (lambda (string predicate action)
@@ -212,8 +212,12 @@ and `zk-luhmann-id-delimiter'."
                     (complete-with-action action candidates string predicate)))
                 :exit-function
                 (lambda (str _status)
-                  (delete-char (- -1 (length str)))
-                  (insert str)
+                  (let* ((id (progn (string-match zk-id-regexp str)
+                                    (match-string 0 str)))
+                         (file (zk--parse-id 'file-path id)))
+                    (delete-char (- -1 (length str)))
+                    (insert (car
+                             (zk-luhmann--formatter file))))
                   (when zk-enable-link-buttons
                     (zk-make-button-before-point)))))))))
 
@@ -221,7 +225,7 @@ and `zk-luhmann-id-delimiter'."
   "List notes with Luhmann-IDs."
   (zk--directory-files t (concat zk-id-regexp " " zk-luhmann-id-prefix)))
 
-(defun zk-luhmann-format-candidates (&optional files)
+(defun zk-luhmann-candidates (&optional files)
   "Format completions candidates for FILES with Luhmann-IDs."
   (let ((files (or files
                    (zk-luhmann-files))))
