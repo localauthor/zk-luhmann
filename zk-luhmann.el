@@ -236,29 +236,26 @@ and `zk-luhmann-id-delimiter'."
 
 (defun zk-luhmann--insert-link (arg)
   "Insert link to note from ARG, with button optional."
-  (insert (zk-luhmann--formatted-string arg 'no-title))
+  (insert (zk-luhmann--formatted-string arg))
   (when zk-enable-link-buttons
     (zk-make-link-buttons)))
 
-(defun zk-luhmann--insert-link-and-title (arg &optional title)
-  "Insert link from ARG according to `zk-luhmann-link-and-title-format'.
-Optional TITLE."
-  (if title ;; needed in zk-new-note
-      (insert (zk--format zk-link-and-title-format arg title))
-    (insert (zk-luhmann--formatted-string arg)))
+(defun zk-luhmann--insert-link-and-title (arg)
+  "Insert link from ARG according to `zk-luhmann-link-and-title-format'."
+  (insert (zk-luhmann--formatted-string arg 'incl-title))
   (when zk-enable-link-buttons
     (zk-make-link-buttons)))
 
-(defun zk-luhmann--formatted-string (arg &optional format)
-  "Format a multi-line string from items in ARG, following FORMAT."
-  (let ((items (zk-luhmann--formatter arg format)))
+(defun zk-luhmann--formatted-string (arg &optional incl-title)
+  "Format a multi-line string from items in ARG.
+Optional INCL-TITLE."
+  (let ((items (zk-luhmann--formatter arg incl-title)))
     (mapconcat #'identity items "\n\n")))
 
-(defun zk-luhmann--formatter (arg &optional no-title no-proc)
+(defun zk-luhmann--formatter (arg &optional incl-title no-proc)
   "Return formatted list from FILES.
 ARG can be zk-file or zk-id as string or list, single or multiple.
-When NO-TITLE, use `zk-link-format' or `zk-luhmann-link-format.'
-When NO-PROC is non-nil, bypass `zk--processor'."
+Optional INCL-TITLE. When NO-PROC is non-nil, bypass `zk--processor'."
   (let ((files (if no-proc
                    arg
                  (zk--processor arg)))
@@ -268,15 +265,16 @@ When NO-PROC is non-nil, bypass `zk--processor'."
           (progn
             (setq lid (match-string 0 file))
             (string-match (zk-file-name-regexp) file)
+            (setq id (match-string 1 file))
             (setq title (replace-regexp-in-string
                          (zk-luhmann-id-regexp) ""
                          (replace-regexp-in-string
                           zk-file-name-separator " "
                           (match-string 2 file))))
-            (setq id (match-string 1 file))
-            (push (format-spec (if no-title
-                                   zk-luhmann-link-format
-                                 zk-luhmann-link-and-title-format)
+            (setq title (string-trim-left title))
+            (push (format-spec (if incl-title
+                                   zk-luhmann-link-and-title-format
+                                 zk-luhmann-link-format)
                                `((?i . ,id)
                                  (?t . ,title)
                                  (?l . ,lid)))
@@ -285,9 +283,9 @@ When NO-PROC is non-nil, bypass `zk--processor'."
           (setq id (match-string 1 file))
           (setq title (replace-regexp-in-string zk-file-name-separator " "
                                                 (match-string 2 file)))
-          (push (zk--format (if no-title
-                                zk-link-format
-                              zk-link-and-title-format)
+          (push (zk--format (if incl-title
+                                zk-link-and-title-format
+                              zk-link-format)
                             id title)
                 items))))
     items))
@@ -297,7 +295,7 @@ When NO-PROC is non-nil, bypass `zk--processor'."
 (defun zk-luhmann-copy-link-and-title (arg)
   "Copy link and title for id or file ARG."
   (interactive (list (funcall zk-select-file-function "Copy link: ")))
-  (let ((links (zk-luhmann--formatted-string arg)))
+  (let ((links (zk-luhmann--formatted-string arg 'incl-title)))
     (kill-new links)
     (message "Copied: %s" links)))
 
