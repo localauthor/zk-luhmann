@@ -5,9 +5,9 @@
 ;; Author: Grant Rosson <https://github.com/localauthor>
 ;; Created: January 25, 2022
 ;; License: GPL-3.0-or-later
-;; Version: 0.3
+;; Version: 0.4
 ;; Homepage: https://github.com/localauthor/zk-luhmann
-;; Package-Requires: ((emacs "25.1")(zk "0.4")(zk-index "0.9"))
+;; Package-Requires: ((emacs "25.1")(zk "0.7")(zk-index "0.10"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
