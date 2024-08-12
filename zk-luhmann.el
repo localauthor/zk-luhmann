@@ -217,7 +217,7 @@ and `zk-luhmann-id-delimiter'."
                          (file (zk--parse-id 'file-path id)))
                     (delete-char (- -1 (length str)))
                     (insert (car
-                             (zk-luhmann--formatter file))))
+                             (zk-luhmann--formatter file t))))
                   (when zk-enable-link-buttons
                     (zk-make-button-before-point)))))))))
 
@@ -305,15 +305,18 @@ Optional INCL-TITLE. When NO-PROC is non-nil, bypass `zk--processor'."
 
 ;;; Luhmann Index
 
+(defvar zk--no-gc)
+
 (defun zk-luhmann--index (&rest args)
   "Wrapper around `zk-index' to implement `zk-luhmann-indent-index'.
 Passes ARGS to `zk-index'."
-  (if zk-luhmann-indent-index
-      (let ((zk-index-prefix ""))
-        (advice-add 'zk-index--insert :override #'zk-luhmann-index--insert)
-        (apply #'zk-index args)
-        (advice-remove 'zk-index--insert #'zk-luhmann-index--insert))
-    (apply #'zk-index args)))
+  (let ((zk--no-gc t))
+    (if zk-luhmann-indent-index
+        (let ((zk-index-prefix ""))
+          (advice-add 'zk-index--insert :override #'zk-luhmann-index--insert)
+          (apply #'zk-index args)
+          (advice-remove 'zk-index--insert #'zk-luhmann-index--insert))
+      (apply #'zk-index args))))
 
 (defun zk-luhmann-index--insert (candidates)
   "Insert CANDIDATES into ZK-Index."
@@ -350,7 +353,8 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index ()
   "Open index for Luhmann-ID notes."
   (interactive)
-  (let ((zk-luhmann-count-format nil)) ; for efficiency
+  (let ((zk--no-gc t)
+        (zk-luhmann-count-format nil)) ; for efficiency
     (when (eq major-mode 'zk-index-mode)
       (zk-index--reset-mode-line)
       (zk-index--reset-mode-name)
@@ -360,7 +364,8 @@ Passes ARGS to `zk-index'."
   "Sort index according to Luhmann-IDs."
   (interactive)
   (when (eq major-mode 'zk-index-mode)
-    (let ((file-list (zk-index--current-file-list)))
+    (let* ((zk--no-gc t)
+           (file-list (zk-index--current-file-list)))
       (when (listp file-list)
         (zk-index-refresh file-list
                           zk-index-last-format-function
@@ -373,7 +378,8 @@ Passes ARGS to `zk-index'."
   (when (eq major-mode 'zk-index-mode)
     (zk-index--reset-mode-line)
     (zk-index--reset-mode-name)
-    (let ((buffer-string (buffer-string)))
+    (let ((zk--no-gc t)
+          (buffer-string (buffer-string)))
       (zk-luhmann--index (zk--directory-files
                           t
                           (concat zk-luhmann-id-prefix
@@ -393,7 +399,8 @@ Passes ARGS to `zk-index'."
   (when (eq major-mode 'zk-index-mode)
     (zk-index--reset-mode-line)
     (zk-index--reset-mode-name)
-    (let* ((buffer-string (buffer-string))
+    (let* ((zk--no-gc t)
+           (buffer-string (buffer-string))
 	   (regexp (concat zk-luhmann-id-prefix
                            ".[^"
                            zk-luhmann-id-postfix
@@ -444,7 +451,8 @@ Passes ARGS to `zk-index'."
     (unless (eq zk-index-last-sort-function
                 'zk-luhmann-sort)
       (zk-luhmann-index-sort))
-    (let* ((buffer-string (buffer-string))
+    (let* ((zk--no-gc t)
+           (buffer-string (buffer-string))
 	   (backward-rx (concat zk-luhmann-id-prefix
                                 ".*"
                                 zk-luhmann-id-postfix))
