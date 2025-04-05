@@ -555,15 +555,14 @@ For details of ARG, see `zk--processor'."
 ;; pick calling embark at point over calling the function itself at point; to
 ;; get at point functionality, make a wrapper function and call that
 
-(defun zk-luhmann--count (zk-alist lid)
+(defun zk-luhmann--count (lids lid)
   "Return number of files under Luhmann ID LID.
-Takes ZK-ALIST for efficiency when called in a loop."
+Takes LIDS, list of Luhmann IDs, for efficiency when called in a loop."
   (if (string-empty-p lid) "0"
-    (let ((count -1))
-      (dolist (item zk-alist)
-        (when (string-match (substring lid 0 -1) (cadr item))
-          (setq count (1+ count))))
-      count)))
+    (let ((id (concat (substring lid 0 -1) ",")))
+      (seq-count
+       (lambda (elt) (string-match id elt))
+       lids))))
 
 (provide 'zk-luhmann)
 ;;; zk-luhmann.el ends here
