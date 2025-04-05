@@ -539,8 +539,9 @@ For details of ARG, see `zk--processor'."
                       nil
                       (zk-luhmann-files)
                       nil
-                      #'zk-index--sort-modified)))
-  (let* ((zk-luhmann-count-format nil) ; for efficiency
+                      #'zk-luhmann-sort)))
+  (let* ((zk--no-gc t)
+         (zk-luhmann-count-format nil) ; for efficiency
          (file (car (zk--processor arg)))
          (id (zk--parse-file 'id file))
          (luhmann-files (zk-luhmann-files)))
@@ -553,7 +554,8 @@ For details of ARG, see `zk--processor'."
           (re-search-forward id nil t)
           (beginning-of-line)
           (zk-index--reset-mode-line)
-          (zk-index))
+          (zk-index)
+          (recenter-top-bottom))
       (user-error "Not a Luhmann note"))))
 ;; BUG: Doesn't highlight line when called from embark-act on zk-file; seems
 ;; to be waiting for input; known issue in embark:
