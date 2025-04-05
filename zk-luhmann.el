@@ -454,40 +454,37 @@ Passes ARGS to `zk-index'."
                 'zk-luhmann-sort)
       (zk-luhmann-index-sort))
     (let* ((zk--no-gc t)
-           (buffer-string (buffer-string))
-	   (backward-rx (concat zk-luhmann-id-prefix
-                                ".*"
-                                zk-luhmann-id-postfix))
-	   (line (buffer-substring (goto-char (point-min))
-				   (line-end-position)))
 	   (id (progn
-	         (string-match backward-rx line)
-	         (match-string 0 line)))
-	   (sub-id (string-trim-right id (concat zk-luhmann-id-delimiter
-                                                 ".[^"
-                                                 zk-luhmann-id-delimiter
-                                                 "]*"
-                                                 zk-luhmann-id-postfix))))
+                 (goto-char (point-min))
+                 (re-search-forward (zk-luhmann-id-regexp))
+                 (match-string-no-properties 0)))
+           (sub-id (replace-regexp-in-string
+                    (concat zk-luhmann-id-postfix
+                            "\\|"
+                            zk-luhmann-id-delimiter
+                            "."
+                            zk-luhmann-id-postfix)
+                    "" id)))
       (setq zk-luhmann-last-index-forward sub-id)
       (zk-index--reset-mode-name)
-      (cond ((eq 2 (length id))
-	     (zk-luhmann--index (zk--directory-files t id)
-		                zk-index-last-format-function
-		                #'zk-luhmann-sort
-                                (buffer-name)))
-	    (t (progn (zk-luhmann--index (zk--directory-files
-                                          t
-                                          (concat sub-id zk-luhmann-id-postfix
-                                                  "\\|"
-                                                  sub-id zk-luhmann-id-delimiter
-                                                  "..?" zk-luhmann-id-postfix))
-		                         zk-index-last-format-function
-		                         #'zk-luhmann-sort
-                                         (buffer-name))
-                      (re-search-forward id nil t)
-                      (beginning-of-line))))
-      (when (string= buffer-string (buffer-string))
-        (zk-luhmann-index-top)))))
+      (if (eq 3 (length id))
+          (progn
+            (zk-luhmann-index-top)
+            (setq zk-luhmann-last-index-forward nil))
+        (zk-luhmann--index (zk--directory-files
+                            t
+                            (concat sub-id
+                                    zk-luhmann-id-postfix
+                                    "\\|"
+                                    sub-id
+                                    zk-luhmann-id-delimiter
+                                    "..?"
+                                    zk-luhmann-id-postfix))
+		           zk-index-last-format-function
+		           #'zk-luhmann-sort
+                           (buffer-name)))
+      (re-search-forward id nil t)
+      (beginning-of-line))))
 
 (defun zk-luhmann-index-unfold ()
   "Expand focus to all Luhmann notes, with point on current note."
