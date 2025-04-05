@@ -73,6 +73,11 @@
 Set to nil to disable display of count."
   :type 'string)
 
+(defcustom zk-luhmann-count-max 500
+  "Count will be disabled for indexes longer than this number.
+If rendering takes too long, consider lowering the threshold."
+  :type 'natnum)
+
 (defcustom zk-luhmann-link-formatting nil
   "Enable `zk-luhmann-link-format' and `zk-luhmann-link-and-title-format'.
 Set to non-nil before loading the package to override
@@ -321,16 +326,19 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index--insert (candidates)
   "Insert CANDIDATES into ZK-Index."
   (let (lid-index
-        (zk-alist (zk--alist)))
+        (lids (when (and zk-luhmann-count-format
+                         (or (not zk-luhmann-count-max)
+                             (> zk-luhmann-count-max
+                                (length candidates))))
+                (zk--directory-files nil (zk-luhmann-id-regexp)))))
     (dolist (file candidates)
       (set-match-data nil)
       (let* ((lid (progn
                     (string-match (zk-luhmann-id-regexp) file)
                     (or (match-string 0 file) "")))
-             (drawer-count (if (and lid
-                                    zk-luhmann-count-format
-                                    (> 100 (length candidates)))
-                               (format zk-luhmann-count-format (zk-luhmann--count zk-alist lid))
+             (drawer-count (if lids
+                               (format zk-luhmann-count-format
+                                       (zk-luhmann--count lids lid))
                              nil))
              (reg (concat "[^"
                           (regexp-quote zk-luhmann-id-delimiter)
