@@ -401,6 +401,8 @@ Passes ARGS to `zk-index'."
       (when (string= buffer-string (buffer-string))
         (zk-luhmann-index)))))
 
+(defvar zk-luhmann-last-index-forward nil)
+
 (defun zk-luhmann-index-forward ()
   "Narrow focus to Luhmann notes below note at point."
   (interactive)
@@ -408,44 +410,36 @@ Passes ARGS to `zk-index'."
     (zk-index--reset-mode-line)
     (zk-index--reset-mode-name)
     (let* ((zk--no-gc t)
-           (buffer-string (buffer-string))
-	   (regexp (concat zk-luhmann-id-prefix
+           (regexp (concat zk-luhmann-id-prefix
                            ".[^"
                            zk-luhmann-id-postfix
                            "]*" ))
+           ;; is all this necessary, just to get the lid?
 	   (line (buffer-substring
 		  (line-beginning-position)
 		  (line-end-position)))
 	   (id (unless (string= "" line)
 	         (unless (string-match regexp line)
                    (user-error "Not a Luhmann note"))
-	         (match-string-no-properties 0 line)))
-	   (str
-	    (cond ((eq this-command 'zk-luhmann-index-forward)
-		   (concat
-                    id zk-luhmann-id-postfix "\\|"
-                    id zk-luhmann-id-delimiter "..?" zk-luhmann-id-postfix))
-		  ((eq this-command 'zk-luhmann-index-unfold)
-                   (concat
-                    id zk-luhmann-id-postfix "\\|"
-                    id zk-luhmann-id-delimiter)))))
+                 (match-string-no-properties 0 line)))
+           (str
+            (if (or (eq this-command 'zk-luhmann-index-unfold)
+                    (string= id zk-luhmann-last-index-forward))
+                ;; its the same, so unfold
+                (progn
+                  (setq zk-luhmann-last-index-forward nil)
+                  (concat
+                   id zk-luhmann-id-postfix "\\|"
+                   id zk-luhmann-id-delimiter))
+              (setq zk-luhmann-last-index-forward id)
+              (concat
+               id zk-luhmann-id-postfix "\\|"
+               id zk-luhmann-id-delimiter "..?" zk-luhmann-id-postfix))))
       (when id
-        (progn
-	  (zk-luhmann--index (zk--directory-files t str)
-		             zk-index-last-format-function
-		             #'zk-luhmann-sort
-                             (buffer-name))
-	  (goto-char (point-min))
-	  (re-search-forward id nil t)
-	  (beginning-of-line)))
-      (cond ((and (eq this-command 'zk-luhmann-index-unfold)
-		  (string= buffer-string (buffer-string)))
-             (pulse-momentary-highlight-one-line nil 'highlight))
-            ((and (eq this-command 'zk-luhmann-index-forward)
-	          (string= buffer-string (buffer-string)))
-             (progn
-	       (setq this-command 'zk-luhmann-index-unfold)
-	       (zk-luhmann-index-unfold)))))))
+        (zk-luhmann--index (zk--directory-files t str)
+		           zk-index-last-format-function
+		           #'zk-luhmann-sort
+                           (buffer-name))))))
 
 (defun zk-luhmann-index-back ()
   "Expand focus to Luhmann notes above note at point."
@@ -474,6 +468,7 @@ Passes ARGS to `zk-index'."
                                                  zk-luhmann-id-delimiter
                                                  "]*"
                                                  zk-luhmann-id-postfix))))
+      (setq zk-luhmann-last-index-forward sub-id)
       (zk-index--reset-mode-name)
       (cond ((eq 2 (length id))
 	     (zk-luhmann--index (zk--directory-files t id)
