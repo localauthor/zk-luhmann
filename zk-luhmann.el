@@ -569,7 +569,7 @@ For details of ARG, see `zk--processor'."
   "Return number of files under Luhmann ID LID.
 Takes LIDS, list of Luhmann IDs, for efficiency when called in a loop."
   (if (string-empty-p lid) "0"
-    (let ((id (concat (substring lid 0 -1) ",")))
+    (let ((id (concat (substring lid 0 -1) zk-luhmann-id-delimiter)))
       (seq-count
        (lambda (elt) (string-match id elt))
        lids))))
