@@ -495,36 +495,6 @@ Passes ARGS to `zk-index'."
     (zk-luhmann-index-forward)
     (recenter-top-bottom)))
 
-(defun zk-luhmann-index-level ()
-  "Set number of sub-branch levels to view."
-  (interactive)
-  (when (derived-mode-p 'zk-index-mode)
-    (zk-index--reset-mode-line)
-    (let* ((char (if (integerp last-command-event)
-                     last-command-event
-                   (get last-command-event 'ascii-character)))
-           (reps (- (- (logand char ?\177) ?0) 1))
-           (base-rx (concat zk-luhmann-id-prefix "[0-9]*"))
-           (slug (concat zk-luhmann-id-delimiter "."))
-           (new-slug "")
-           (regexp
-            (progn
-              (when reps
-                (dotimes (_ reps)
-                  (setq new-slug (concat new-slug slug))))
-              (concat base-rx new-slug zk-luhmann-id-postfix)))
-           (current-files (zk--parse-id 'file-path (zk-index--current-id-list (buffer-name))))
-           (files (remq nil
-                        (mapcar
-                         (lambda (x)
-                           (when (member x (zk--directory-files t regexp))
-                             x))
-                         current-files))))
-      (zk-index files
-                zk-index-last-format-function
-                #'zk-luhmann-sort
-                (buffer-name)))))
-
 (defun zk-luhmann--count (files lid)
   "Return number of files under the Luhmann ID LID.
 Takes list of Luhmann FILES for efficiency when called in a loop."
