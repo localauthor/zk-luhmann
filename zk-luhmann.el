@@ -325,12 +325,14 @@ Passes ARGS to `zk-index'."
 
 (defun zk-luhmann-index--insert (candidates)
   "Insert CANDIDATES into ZK-Index."
-  (let (lid-index
-        (lids (when (and zk-luhmann-count-format
-                         (or (not zk-luhmann-count-max)
-                             (> zk-luhmann-count-max
-                                (length candidates))))
-                (zk--directory-files nil (zk-luhmann-id-regexp)))))
+  (let ((files (when (and zk-luhmann-count-format
+                          (or (not zk-luhmann-count-max)
+                              (> zk-luhmann-count-max
+                                 (length candidates))))
+                 (if zk-luhmann-last-index-forward
+                     (zk-luhmann-files)
+                   candidates)))
+        lid-index)
     (dolist (file candidates)
       (set-match-data nil)
       (let* ((lid (progn
