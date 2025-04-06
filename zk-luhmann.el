@@ -111,7 +111,7 @@ and `zk-luhmann-id-delimiter'."
 (defun zk-luhmann ()
   "Find note with Luhmann-IDs."
   (interactive)
-  (let* ((list (zk-luhmann-files))
+  (let* ((list (zk-luhmann-files t))
          (file
           (completing-read
            "Select File: "
@@ -228,9 +228,12 @@ and `zk-luhmann-id-delimiter'."
                 (when zk-enable-link-buttons
                   (zk-make-button-before-point)))))))))
 
-(defun zk-luhmann-files ()
-  "List notes with Luhmann-IDs."
-  (zk--directory-files t (concat zk-id-regexp " " zk-luhmann-id-prefix)))
+(defun zk-luhmann-files (&optional full)
+  "List notes with Luhmann-IDs.
+When FULL is non-nil, return full file-paths."
+  (let ((zk--no-gc t))
+    (zk--directory-files full
+                         (concat zk-id-regexp " " zk-luhmann-id-prefix))))
 
 (defun zk-luhmann-candidates (&optional files)
   "Format completions candidates for FILES with Luhmann-IDs."
@@ -371,6 +374,7 @@ Passes ARGS to `zk-index'."
       (zk-index--reset-mode-line)
       (zk-index--reset-mode-name)
       (zk-luhmann--index (zk-luhmann-files) nil 'zk-luhmann-sort (buffer-name)))))
+    (zk-luhmann--index (zk-luhmann-files t) nil 'zk-luhmann-sort (buffer-name))))
 
 (defun zk-luhmann-index-sort ()
   "Sort index according to Luhmann-IDs."
