@@ -368,12 +368,11 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index ()
   "Open index for Luhmann-ID notes."
   (interactive)
+  (zk-index-switch-to-index)
   (let ((zk--no-gc t)
         (zk-luhmann-count-format nil)) ; for efficiency
-    (when (derived-mode-p 'zk-index-mode)
-      (zk-index--reset-mode-line)
-      (zk-index--reset-mode-name)
-      (zk-luhmann--index (zk-luhmann-files) nil 'zk-luhmann-sort (buffer-name)))))
+    (zk-index--reset-mode-line)
+    (zk-index--reset-mode-name)
     (zk-luhmann--index (zk-luhmann-files t) nil 'zk-luhmann-sort (buffer-name))))
 
 (defun zk-luhmann-index-sort ()
