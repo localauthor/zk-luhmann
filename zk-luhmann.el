@@ -103,6 +103,8 @@ and `zk-luhmann-id-delimiter'."
            "]*\\)"
            zk-luhmann-id-postfix))
 
+(defvar zk-luhmann-last-index-forward nil)
+
 ;;; Luhmann ID Support
 
 ;;;###autoload
@@ -338,9 +340,9 @@ Passes ARGS to `zk-index'."
       (let* ((lid (progn
                     (string-match (zk-luhmann-id-regexp) file)
                     (or (match-string 0 file) "")))
-             (drawer-count (if lids
+             (drawer-count (if files
                                (format zk-luhmann-count-format
-                                       (zk-luhmann--count lids lid))
+                                       (zk-luhmann--count files lid))
                              nil))
              (reg (concat "[^"
                           (regexp-quote zk-luhmann-id-delimiter)
@@ -365,7 +367,7 @@ Passes ARGS to `zk-index'."
   (interactive)
   (let ((zk--no-gc t)
         (zk-luhmann-count-format nil)) ; for efficiency
-    (when (eq major-mode 'zk-index-mode)
+    (when (derived-mode-p 'zk-index-mode)
       (zk-index--reset-mode-line)
       (zk-index--reset-mode-name)
       (zk-luhmann--index (zk-luhmann-files) nil 'zk-luhmann-sort (buffer-name)))))
@@ -373,7 +375,7 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index-sort ()
   "Sort index according to Luhmann-IDs."
   (interactive)
-  (when (eq major-mode 'zk-index-mode)
+  (when (derived-mode-p 'zk-index-mode)
     (let* ((zk--no-gc t)
            (file-list (zk-index--current-file-list)))
       (when (listp file-list)
@@ -385,7 +387,7 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index-top ()
   "Focus on top level Luhmann-ID notes."
   (interactive)
-  (when (eq major-mode 'zk-index-mode)
+  (when (derived-mode-p 'zk-index-mode)
     (zk-index--reset-mode-line)
     (zk-index--reset-mode-name)
     (let ((zk--no-gc t)
@@ -403,12 +405,10 @@ Passes ARGS to `zk-index'."
       (when (string= buffer-string (buffer-string))
         (zk-luhmann-index)))))
 
-(defvar zk-luhmann-last-index-forward nil)
-
 (defun zk-luhmann-index-forward ()
   "Narrow focus to Luhmann notes below note at point."
   (interactive)
-  (when (eq major-mode 'zk-index-mode)
+  (when (derived-mode-p 'zk-index-mode)
     (zk-index--reset-mode-line)
     (zk-index--reset-mode-name)
     (let* ((zk--no-gc t)
@@ -446,7 +446,7 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index-back ()
   "Expand focus to Luhmann notes above note at point."
   (interactive)
-  (when (eq major-mode 'zk-index-mode)
+  (when (derived-mode-p 'zk-index-mode)
     (beginning-of-line)
     (unless (re-search-forward (zk-luhmann-id-regexp)
                                (line-end-position) t)
@@ -491,14 +491,14 @@ Passes ARGS to `zk-index'."
 (defun zk-luhmann-index-unfold ()
   "Expand focus to all Luhmann notes, with point on current note."
   (interactive)
-  (when (eq major-mode 'zk-index-mode)
+  (when (derived-mode-p 'zk-index-mode)
     (zk-luhmann-index-forward)
     (recenter-top-bottom)))
 
 (defun zk-luhmann-index-level ()
   "Set number of sub-branch levels to view."
   (interactive)
-  (when (eq major-mode 'zk-index-mode)
+  (when (derived-mode-p 'zk-index-mode)
     (zk-index--reset-mode-line)
     (let* ((char (if (integerp last-command-event)
                      last-command-event
@@ -525,6 +525,15 @@ Passes ARGS to `zk-index'."
                 #'zk-luhmann-sort
                 (buffer-name)))))
 
+(defun zk-luhmann--count (files lid)
+  "Return number of files under the Luhmann ID LID.
+Takes list of Luhmann FILES for efficiency when called in a loop."
+  (if (string-empty-p lid) "0"
+    (let ((id (concat (substring lid 0 -1) zk-luhmann-id-delimiter)))
+      (seq-count
+       (lambda (elt) (string-match id elt))
+       files))))
+
 ;;;###autoload
 (defun zk-luhmann-index-goto (&optional arg)
   "Open index to selected note.
@@ -548,7 +557,6 @@ For details of ARG, see `zk--processor'."
           (re-search-forward id nil t)
           (beginning-of-line)
           (zk-index--reset-mode-line)
-          (zk-index)
           (recenter-top-bottom))
       (user-error "Not a Luhmann note"))))
 ;; BUG: Doesn't highlight line when called from embark-act on zk-file; seems
@@ -559,14 +567,6 @@ For details of ARG, see `zk--processor'."
 ;; pick calling embark at point over calling the function itself at point; to
 ;; get at point functionality, make a wrapper function and call that
 
-(defun zk-luhmann--count (lids lid)
-  "Return number of files under Luhmann ID LID.
-Takes LIDS, list of Luhmann IDs, for efficiency when called in a loop."
-  (if (string-empty-p lid) "0"
-    (let ((id (concat (substring lid 0 -1) zk-luhmann-id-delimiter)))
-      (seq-count
-       (lambda (elt) (string-match id elt))
-       lids))))
 
 (provide 'zk-luhmann)
 ;;; zk-luhmann.el ends here
