@@ -1,11 +1,11 @@
 ;;; zk-luhmann.el --- Support for Luhmann-style IDs in zk  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2024  Grant Rosson
+;; Copyright (C) 2022-2026  Grant Rosson
 
 ;; Author: Grant Rosson <https://github.com/localauthor>
 ;; Created: January 25, 2022
 ;; License: GPL-3.0-or-later
-;; Version: 0.4
+;; Package-Version: 1.0
 ;; URL: https://github.com/localauthor/zk-luhmann
 ;; Package-Requires: ((emacs "25.1")(zk "0.7")(zk-index "0.10"))
 
