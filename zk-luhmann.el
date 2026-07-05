@@ -505,28 +505,25 @@ Takes list of Luhmann FILES for efficiency when called in a loop."
 For details of ARG, see `zk--processor'."
   (interactive (list (zk--select-file
                       nil
-                      (zk-luhmann-files)
+                      (zk-luhmann-files t)
                       nil
                       #'zk-luhmann-sort)))
   (let* ((zk--no-gc t)
          (zk-luhmann-count-format nil) ; for efficiency
          (file (car (zk--processor arg)))
          (id (zk--parse-file 'id file))
-         (luhmann-files (zk-luhmann-files)))
+         (luhmann-files (zk-luhmann-files t)))
     (if (member file luhmann-files)
         (progn
-          (zk-luhmann--index luhmann-files
-                             zk-index-last-format-function
-                             #'zk-luhmann-sort
-                             nil)
+          (zk-luhmann-index)
+          (goto-char (point-min))
           (re-search-forward id nil t)
           (beginning-of-line)
           (zk-index--reset-mode-line)
-          (recenter-top-bottom))
+          (recenter-top-bottom '(4))
+          (hl-line-highlight))
       (user-error "Not a Luhmann note"))))
-;; BUG: Doesn't highlight line when called from embark-act on zk-file; seems
-;; to be waiting for input; known issue in embark:
-;; https://github.com/oantolin/embark/issues/470
+
 ;; NOTE: Including 'at-point' id detection in the function's interactive call
 ;; does not play well with Embark, so we have to pick one or the other; I
 ;; pick calling embark at point over calling the function itself at point; to
