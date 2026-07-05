@@ -346,9 +346,13 @@ Passes ARGS to `zk-index'."
                     (string-match (zk-luhmann-id-regexp) file)
                     (or (match-string 0 file) "")))
              (drawer-count (if files
-                               (format zk-luhmann-count-format
-                                       (zk-luhmann--count files lid))
+                               (zk-luhmann--count files lid)
                              nil))
+             (drawer (if (and drawer-count
+                              (> drawer-count 0))
+                         (format zk-luhmann-count-format
+                                 drawer-count)
+                       ""))
              (reg (concat "[^"
                           (regexp-quote zk-luhmann-id-delimiter)
                           "]"))
@@ -361,7 +365,7 @@ Passes ARGS to `zk-index'."
                          (setq lid-index lid-length))
                        (- lid-length lid-index)))
              (line (concat (make-string spaces ? )
-                           file drawer-count "\n")))
+                           file drawer "\n")))
         (insert line)))
     (zk-index--make-buttons)
     (zk-index--set-mode-name (format " [%s]" (length candidates)))))
