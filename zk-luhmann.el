@@ -265,8 +265,7 @@ When FULL is non-nil, return full file-paths."
 (defun zk-luhmann--formatted-string (arg &optional incl-title)
   "Format a multi-line string from items in ARG.
 Optional INCL-TITLE."
-  (let ((items (zk-luhmann--formatter arg incl-title)))
-    (mapconcat #'identity items "\n\n")))
+  (string-join (zk-luhmann--formatter arg incl-title) "\n\n"))
 
 (defun zk-luhmann--formatter (arg &optional incl-title no-proc)
   "Return formatted list from FILES.
