@@ -323,11 +323,12 @@ Optional INCL-TITLE. When NO-PROC is non-nil, bypass `zk--processor'."
 Passes ARGS to `zk-index'."
   (let ((zk--no-gc t))
     (if zk-luhmann-indent-index
-        (let ((zk-index-prefix ""))
+        (let ((zk-index-prefix "")
+              (zk-index-invisible-ids t)) ;; add?
           (advice-add 'zk-index--insert :override #'zk-luhmann-index--insert)
-          (apply #'zk-index args)
+          (apply #'zk-index-refresh args)
           (advice-remove 'zk-index--insert #'zk-luhmann-index--insert))
-      (apply #'zk-index args))))
+      (apply #'zk-index-refresh args))))
 
 (defun zk-luhmann-index--insert (candidates)
   "Insert CANDIDATES into ZK-Index."
