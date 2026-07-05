@@ -275,7 +275,7 @@ Optional INCL-TITLE. When NO-PROC is non-nil, bypass `zk--processor'."
                    arg
                  (zk--processor arg)))
         lid title id items)
-    (dolist (file files)
+    (dolist (file files items)
       (if (string-match (zk-luhmann-id-regexp) file)
           (progn
             (setq lid (match-string 0 file))
@@ -302,15 +302,15 @@ Optional INCL-TITLE. When NO-PROC is non-nil, bypass `zk--processor'."
                                 zk-link-and-title-format
                               zk-link-format)
                             id title)
-                items))))
-    items))
+                items))))))
 
 ;;; Copy Link
 
 (defun zk-luhmann-copy-link-and-title (arg)
   "Copy link and title for id or file ARG."
   (interactive (list (funcall zk-select-file-function "Copy link: ")))
-  (let ((links (zk-luhmann--formatted-string arg 'incl-title)))
+  (let* ((incl-title (not current-prefix-arg))
+         (links (zk-luhmann--formatted-string arg incl-title)))
     (kill-new links)
     (message "Copied: %s" links)))
 
