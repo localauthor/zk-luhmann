@@ -199,34 +199,36 @@ and `zk-luhmann-id-delimiter'."
                   (t return))))))
 
 (defun zk-luhmann-completion-at-point ()
-"Completion at point function for notes with Luhmann-IDs."
-(let ((case-fold-search t)
-      (origin (point)))
-  (save-excursion
-    (when (and (re-search-backward zk-luhmann-id-prefix nil t)
-               (save-excursion
-                 (not (search-forward zk-luhmann-id-postfix
-                                      origin
-                                      t))))
-      (let ((start (match-end 0))
-            (candidates (zk-luhmann-candidates)))
-        (list start
-              origin
-              (lambda (string predicate action)
-                (if (eq action 'metadata)
-                    `(metadata
-                      (display-sort-function . zk-luhmann-sort))
-                  (complete-with-action action candidates string predicate)))
-              :exit-function
-              (lambda (str _status)
-                (let* ((id (progn (string-match zk-id-regexp str)
-                                  (match-string 0 str)))
-                       (file (zk--parse-id 'file-path id)))
-                  (delete-char (- -1 (length str)))
-                  (insert (car
-                           (zk-luhmann--formatter file t))))
-                (when zk-enable-link-buttons
-                  (zk-make-button-before-point)))))))))
+  "Completion at point function for notes with Luhmann-IDs."
+  (let ((case-fold-search t)
+        (end (point)))
+    (save-excursion
+      (when (and (re-search-backward zk-luhmann-id-prefix nil t)
+                 (save-excursion
+                   (not (search-forward zk-luhmann-id-postfix
+                                        end
+                                        t))))
+        (let ((begin (match-end 0))
+              (candidates (zk-luhmann-candidates)))
+          (list begin
+                end
+                (lambda (string predicate action)
+                  (if (eq action 'metadata)
+                      `(metadata
+                        (display-sort-function . zk-luhmann-sort))
+                    (complete-with-action action candidates string predicate)))
+                :exit-function
+                (lambda (str _status)
+                  (let* ((id (progn (string-match zk-id-regexp str)
+                                    (match-string 0 str)))
+                         (file (zk--parse-id 'file-path id)))
+                    (delete-char (- -1 (length str)))
+                    (insert (car
+                             (zk-luhmann--formatter file t))))
+                  (when zk-enable-link-buttons
+                    (zk-make-button-before-point))
+                  (when (looking-at "}") ;; account for elec-pair
+                    (delete-char 1)))))))))
 
 (defun zk-luhmann-files (&optional full)
   "List notes with Luhmann-IDs.
